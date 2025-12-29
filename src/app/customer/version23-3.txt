@@ -1,0 +1,355 @@
+'use client';
+import { get } from '@/utils/network';
+import { useState, useEffect } from 'react';
+
+interface User {
+  id: number;
+  full_name: string;
+  photo_url: string;
+  email_address: string;
+  phone_number: string;
+  points: number;
+  redeemed: boolean;
+  total_visits: number;
+}
+interface DoctorAppointment {
+  id: number;
+  user_id: number;
+  status: string;
+  start_time: string;
+  end_time: string;
+  branch_name_en: string;
+  branch_name_ar: string;
+  name_en: string;
+  name_ar: string;
+  photo_url: string;
+  date: string;
+}
+
+interface ServiceAppointment {
+  id: number;
+  user_id: number;
+  status: string;
+  branch_name_en: string;
+  branch_name_ar: string;
+  start_time: string;
+  end_time: string;
+  name_ar: string;
+  name_en: string;
+  category_name_en: string;
+  category_name_ar: string;
+  service_image_en_url: string;
+  service_image_ar_url: string;
+  date: string;
+}
+
+const CustomerTable = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedUser, setExpandedUser] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<'doctor' | 'service'>('doctor');
+  
+  // States for appointment data
+  const [doctorAppointments, setDoctorAppointments] = useState<Record<number, DoctorAppointment[]>>({});
+  const [serviceAppointments, setServiceAppointments] = useState<Record<number, ServiceAppointment[]>>({});
+  const [appointmentLoading, setAppointmentLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await get("/user/userMetrics");
+        console.log(response);
+        setUsers(response);
+      } catch (err: any) {
+        setError("Error fetching user data: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const getInitials = (name: string) => {
+    if (!name) return "U";
+    return name
+      .split(' ')
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  // Function to fetch appointment data
+  const fetchAppointmentData = async (userId: number) => {
+    setAppointmentLoading(true);
+    try {
+      // Fetch doctor appointments
+      if (!doctorAppointments[userId]) {
+        const doctorData = await get(`/booking/doctor/${userId}`);
+        console.log(doctorData)
+        setDoctorAppointments(prev => ({
+          ...prev,
+          [userId]: doctorData
+        }));
+      }
+      
+      // Fetch service appointments
+      if (!serviceAppointments[userId]) {
+        const serviceData = await get(`/booking/service/${userId}`);
+        console.log(serviceData)
+        setServiceAppointments(prev => ({
+          ...prev,
+          [userId]: serviceData
+        }));
+      }
+    } catch (err: any) {
+      console.error("Error fetching appointment data:", err);
+    } finally {
+      setAppointmentLoading(false);
+    }
+  };
+
+  const toggleDetails = (userId: number) => {
+    if (expandedUser === userId) {
+      setExpandedUser(null);
+    } else {
+      setExpandedUser(userId);
+      setActiveTab('doctor');
+      fetchAppointmentData(userId); // Fetch data when expanding
+    }
+  };
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
+  return (
+    <table className="table bordered-table sm-table mb-0">
+      <thead>
+        <tr>
+          <th scope="col">DP</th>
+          <th scope="col">ID</th>
+          <th scope="col">Customer</th>
+          <th scope="col">Email</th>
+          <th scope="col">Phone Number</th>
+          <th scope="col">Points</th>
+          <th scope="col">Redeemed</th>
+          <th scope="col">Total Visits</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {users.length > 0 ? (
+          users.map((user) => (
+            <>
+              <tr key={user.id}>
+                <td>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      width: '35px',
+                      height: '35px',
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '20px',
+                      color: '#666',
+                      border: '1px solid #eaeaea'
+                    }}>
+                      {user.photo_url ? (
+                        <img
+                          src={user.photo_url}
+                          alt=""
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                          }}
+                        />
+                      ) : (
+                        getInitials(user.full_name)
+                      )}
+                    </div>
+                  </div>
+                </td>
+                <td>{user.id}</td>
+                <td><span>{user.full_name}</span></td>
+                <td><span>{user.email_address}</span></td>
+                <td><span>{user.phone_number}</span></td>
+                <td>{user.points}</td>
+                <td>{user.redeemed ? "Yes" : "No"}</td>
+                <td>{user.total_visits}</td>
+                <td>
+                  <button 
+                    style={{ 
+                      border: 'none',
+                      background: expandedUser === user.id ? '#007bff' : '#f0f0f0',
+                      color: expandedUser === user.id ? 'white' : 'black',
+                      padding: '4px 8px',
+                      borderRadius: '3px',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                    onClick={() => toggleDetails(user.id)}
+                  >
+                    View Details
+                  </button>
+                </td>
+              </tr>
+              {expandedUser === user.id && (
+                <tr>
+                  <td colSpan={9}>
+                    <div className="p-3">
+                      {/* Tabs navigation */}
+                      <div className="mb-3">
+                        <button
+                          style={{ 
+                            border: 'none',
+                            background: activeTab === 'doctor' ? '#007bff' : '#f0f0f0',
+                            color: activeTab === 'doctor' ? 'white' : 'black',
+                            padding: '6px 12px',
+                            borderRadius: '3px',
+                            cursor: 'pointer',
+                            fontSize: '13px',
+                            marginRight: '8px'
+                          }}
+                          onClick={() => setActiveTab('doctor')}
+                        >
+                          Doctor Appointment History
+                        </button>
+                        <button
+                          style={{ 
+                            border: 'none',
+                            background: activeTab === 'service' ? '#007bff' : '#f0f0f0',
+                            color: activeTab === 'service' ? 'white' : 'black',
+                            padding: '6px 12px',
+                            borderRadius: '3px',
+                            cursor: 'pointer',
+                            fontSize: '13px'
+                          }}
+                          onClick={() => setActiveTab('service')}
+                        >
+                          Service Appointment History
+                        </button>
+                      </div>
+
+                      {/* Tab content */}
+                      {appointmentLoading ? (
+                        <div className="text-center py-3">Loading appointment data...</div>
+                      ) : (
+                        <>
+                          {activeTab === 'doctor' && (
+  <div>
+    <table className="table bordered-table sm-table mb-0">
+      <thead>
+        <tr>
+        <th>Booking ID</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Doctor</th>
+          <th>Branch</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {doctorAppointments[user.id]?.length > 0 ? (
+          doctorAppointments[user.id].map((appointment) => (
+            <tr key={appointment.id}>
+              <td>{appointment.id}</td>
+
+              <td>{new Date(appointment.date).toLocaleDateString()}</td>
+              <td>{appointment.start_time} - {appointment.end_time}</td>
+              <td>{appointment.name_en}</td>
+              <td>{appointment.branch_name_en}</td>
+              <td>
+                <span style={{
+                  padding: '2px 6px',
+                  borderRadius: '3px',
+                  fontSize: '11px',
+                  backgroundColor: 
+                    appointment.status === 'COMPLETED' ? '#d4edda' :
+                    appointment.status === 'CANCELLED' ? '#f8d7da' :
+                    appointment.status === 'SCHEDULED' ? '#cce5ff' : '#ffeeba',
+                  color: 
+                    appointment.status === 'COMPLETED' ? '#155724' :
+                    appointment.status === 'CANCELLED' ? '#721c24' :
+                    appointment.status === 'SCHEDULED' ? '#004085' : '#856404',
+                }}>
+                  {appointment.status}
+                </span>
+              </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={5} className="text-center py-2">
+              No doctor appointments found.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+)}
+
+                          {activeTab === 'service' && (
+                            <div>
+                              <table className="table bordered-table sm-table mb-0">
+                                <thead>
+                                  <tr>
+                                    <th>Date</th>
+                                    <th>Service</th>
+                                    <th>Provider</th>
+                                    <th>Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {serviceAppointments[user.id]?.length > 0 ? (
+                                    serviceAppointments[user.id].map((appointment) => (
+                                      <tr key={appointment.id}>
+                                        <td>{appointment.date}</td>
+                                        <td>{appointment.service}</td>
+                                        <td>{appointment.provider}</td>
+                                        <td>{appointment.status}</td>
+                                      </tr>
+                                    ))
+                                  ) : (
+                                    <tr>
+                                      <td colSpan={4} className="text-center py-2">
+                                        No service appointments found.
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={9} className="text-center py-2">
+              No customers available.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  );
+};
+
+export default CustomerTable;
