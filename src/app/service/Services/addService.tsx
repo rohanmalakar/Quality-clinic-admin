@@ -1,6 +1,5 @@
 import { get, post, put, uploadImage } from "@/utils/network";
 import { useEffect, useState } from "react";
-import TimeSlotCreator from "../time-range-selector";
 import BranchSelection from "./addBranch";
 import { TimeRange } from "@/utils/types";
 import { ERRORS } from "@/utils/errors";
@@ -61,17 +60,18 @@ interface ServiceFormData {
 interface Props {
   editData?: Service; // This prop will contain prefilled data when editing
   serviceBranches?: Branch[];
-  serviceTimeSlots?: TimeRange[];
   onSuccess: (service: Service) => void;
 }
 
-const AddService = ({ editData, serviceBranches, serviceTimeSlots, onSuccess }: Props) => {
+const AddService = ({ editData, serviceBranches, onSuccess }: Props) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number>(-1);
   const [categoriesLoading, setCategoriesLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedBranches, setSelectedBranches] = useState<Branch[]>([]);
-  const [selectedTimeSlots, setSelectedTimeSlots] = useState<TimeRange[]>([]);
+  const [updating, setUpdating] = useState<boolean>(false);
+  const [creating, setCreating] = useState<boolean>(false);
+  
   // Form data state
   const [formData, setFormData] = useState<ServiceFormData>({
     name_en: "",
@@ -88,6 +88,7 @@ const AddService = ({ editData, serviceBranches, serviceTimeSlots, onSuccess }: 
 
 
 
+
   // Prefill data when `editData` is available
   useEffect(() => {
     // Set the state
@@ -98,10 +99,6 @@ const AddService = ({ editData, serviceBranches, serviceTimeSlots, onSuccess }: 
       setSelectedBranches(serviceBranches);
     }
 
-
-    if (serviceTimeSlots && serviceTimeSlots.length > 0) {
-      setSelectedTimeSlots(serviceTimeSlots);
-    }
     if (editData) {
       setFormData({
         name_en: editData.name_en,
@@ -114,11 +111,10 @@ const AddService = ({ editData, serviceBranches, serviceTimeSlots, onSuccess }: 
         can_redeem: editData.can_redeem,
         service_image_en_url: editData.service_image_en_url,
         service_image_ar_url: editData.service_image_ar_url,
-
       });
     }
     fetchCategories();
-  }, [editData, serviceBranches, serviceTimeSlots]);
+  }, [editData, serviceBranches]);
 
 
   // Fetch categories
@@ -178,7 +174,8 @@ const AddService = ({ editData, serviceBranches, serviceTimeSlots, onSuccess }: 
     //     category_id: z.integer(),
     //     service_image_en_url: z.string(),
     //     service_image_ar_url: z.string(),
-    //     can_redeem: z.boolean().default(false)
+    //     can_redeem: z.boolean().default(false) 
+    setUpdating(true);  
     if (!editData) {
       return
     }
@@ -223,35 +220,17 @@ const AddService = ({ editData, serviceBranches, serviceTimeSlots, onSuccess }: 
 
       const branches = selectedBranches.map((branch) => ({
         branch_id: branch.branch_id,
-        maximum_booking_per_slot: branch.maximum_booking_per_slot
+        maximum_booking_per_slot: 10
       }))
-      const updatedBranches = branches.filter(branch =>
-        !serviceBranches?.some(serviceBranch =>
-          serviceBranch.branch_id === branch.branch_id &&
-          serviceBranch.maximum_booking_per_slot === branch.maximum_booking_per_slot
-        )
-      );
+      
 
-      if (updatedBranches.length > 0) {
-        await put(`/service/branches`, { branches: selectedBranches, service_id: editData?.id });
-      }
-
-      const timeSlots = selectedTimeSlots.map((timeSlot) => ({
-        start_time: timeSlot.start_time,
-        end_time: timeSlot.end_time
-      }))
-      const updatedTimeSlots = timeSlots.filter(timeSlot =>
-        !serviceTimeSlots?.some(serviceTimeSlot =>
-          serviceTimeSlot.start_time === timeSlot.start_time &&
-          serviceTimeSlot.end_time === timeSlot.end_time
-        )
-      );
-      if (updatedTimeSlots.length > 0) {
-        await put(`/service/time_slots`, { time_slots: updatedTimeSlots, service_id: editData?.id });
-      }
+      await put(`/service/branches`, { branches: selectedBranches, service_id: editData?.id });
+      
       onSuccess(service);
     } catch (error) {
       console.error("Error updating service:", error);
+    } finally {
+      setUpdating(false);
     }
   }
 
@@ -280,6 +259,7 @@ const AddService = ({ editData, serviceBranches, serviceTimeSlots, onSuccess }: 
     setFormData(prev => ({ ...prev, service_image_en_url: "" }));
   };
   const handleCreate = async () => {
+    setCreating(true);
     try {
       if (!formData.name_en) {
         throw ERRORS.SERVICE_NAME_EN_REQUIRED
@@ -312,9 +292,7 @@ const AddService = ({ editData, serviceBranches, serviceTimeSlots, onSuccess }: 
       if (selectedBranches.length === 0) {
         throw ERRORS.BRANCH_REQUIRED
       }
-      if (selectedTimeSlots.length === 0) {
-        throw ERRORS.TIME_SLOT_REQUIRED
-      }
+      
 
 
       const imageEN = await uploadImage(formData.service_image_en_url)
@@ -334,13 +312,7 @@ const AddService = ({ editData, serviceBranches, serviceTimeSlots, onSuccess }: 
       }
       const response = await post("/service", data)
       const serviceID = response.id
-      selectedTimeSlots
-      await post(`/service/time_slots`,
-        {
-          service_id: serviceID,
-          time_slots: selectedTimeSlots
-        }
-      )
+      
       const branches = selectedBranches.map((branch) => ({
         branch_id: branch.branch_id,
         maximum_booking_per_slot: branch.maximum_booking_per_slot
@@ -354,8 +326,9 @@ const AddService = ({ editData, serviceBranches, serviceTimeSlots, onSuccess }: 
       onSuccess(response);
     } catch (error) {
       console.error("Error creating service:", error);
+    } finally {
+      setCreating(false);
     }
-
   }
 
   return (
@@ -538,13 +511,10 @@ const AddService = ({ editData, serviceBranches, serviceTimeSlots, onSuccess }: 
               {/* Branch Selection */}
               <BranchSelection selectedBranches={selectedBranches} setSelectedBranches={setSelectedBranches} />
 
-              {/* Time Slot */}
-              <TimeSlotCreator title="Time Slot" selectedTimeSlots={selectedTimeSlots} setSelectedTimeSlots={setSelectedTimeSlots} />
-
               {/* Submit Button */}
               <div className="col-12">
-                <button onClick={handleSubmit} className="btn btn-primary">
-                  {editData ? "Update Service" : "Add Service"}
+                <button onClick={handleSubmit} className="btn btn-primary" disabled={updating || creating}>
+                  {editData ? (updating ? "Updating..." : "Update Service") : (creating ? "Creating..." : "Add Service")}
                 </button>
               </div>
 

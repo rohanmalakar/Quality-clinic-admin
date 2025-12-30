@@ -14,7 +14,6 @@ const ServicePage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<any>(null);
-  const [serviceTimeSlots, SetServiceTimeSlots] = useState<any>(null);
   const [serviceBranches, setServiceBranches] = useState<any>(null);
 
   useEffect(() => {
@@ -38,11 +37,10 @@ const ServicePage = () => {
   };
 
   const handleEditService = async (serviceId: number) => {
-    const timeSlots = await get(`/service/time_slots?service_id=${serviceId}`);
+    
     const branch = await get(`/branch/service?service_id=${serviceId}`);
 
     setServiceBranches(branch);
-    SetServiceTimeSlots(timeSlots);
     const serviceToEdit = services.find((service) => service.id === serviceId);
     if (!serviceToEdit) {
       return;
@@ -114,7 +112,6 @@ const ServicePage = () => {
             onSuccess={onSuccessServiceEdit}
             editData={selectedService}
             serviceBranches={serviceBranches}
-            serviceTimeSlots={serviceTimeSlots}
           />
         </Modal.Body>
       </Modal>

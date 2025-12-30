@@ -63,20 +63,20 @@ const BranchSelection: React.FC<{
     }
   };
 
-  const handleTimeSlotsChange = (index: number, value: number) => {
-    const updatedBranches = [...selectedBranches];
-    updatedBranches[index].maximum_booking_per_slot = value;
-    setSelectedBranches(updatedBranches);
-  };
+  // const handleTimeSlotsChange = (index: number, value: number) => {
+  //   const updatedBranches = [...selectedBranches];
+  //   updatedBranches[index].maximum_booking_per_slot = value;
+  //   setSelectedBranches(updatedBranches);
+  // };
 
   const removeBranch = (index: number) => {
     setSelectedBranches(selectedBranches.filter((_, i) => i !== index));
   };
 
   // Calculate total time slots
-  const calculateTotalTimeSlots = (): number => {
-    return selectedBranches.reduce((total, branch) => total + branch.maximum_booking_per_slot, 0);
-  };
+  // const calculateTotalTimeSlots = (): number => {
+  //   return selectedBranches.reduce((total, branch) => total + branch.maximum_booking_per_slot, 0);
+  // };
 
   return (
     <Card className="border-neutral-200 dark:border-neutral-600">
@@ -113,16 +113,17 @@ const BranchSelection: React.FC<{
           </div>
         ) : (
           <>
-            <div className="d-flex justify-content-between mb-2">
+            {/* <div className="d-flex justify-content-between mb-2">
+
               <Badge bg="info" className="fs-6 py-1 px-3">
                 Total time slots: {calculateTotalTimeSlots()}
               </Badge>
-            </div>
+            </div> */}
 
             <div className="branches-container">
               {selectedBranches.map((branch, index) => (
-                <div key={index} className="mb-2 p-2 bg-neutral-50 dark:bg-neutral-700 rounded border border-neutral-200 dark:border-neutral-600">
-                  <Row className="align-items-center g-2">
+                <div key={index} className="mb-2 p-2 rounded border border-neutral-200 dark:border-neutral-600">
+                  <Row className="align-items-center justify-content-between g-2">
                     <Col md={5}>
                       <FloatingLabel controlId={`branch-${index}`} label="Branch">
                         <Form.Select
@@ -140,7 +141,8 @@ const BranchSelection: React.FC<{
                       </FloatingLabel>
                     </Col>
 
-                    <Col md={4}>
+                    {/* <Col md={4}>
+
                       <FloatingLabel controlId={`time-slots-${index}`} label="Time Slots">
                         <Form.Control
                           type="number"
@@ -149,7 +151,7 @@ const BranchSelection: React.FC<{
                           onChange={(e) => handleTimeSlotsChange(index, Number(e.target.value))}
                         />
                       </FloatingLabel>
-                    </Col>
+                    </Col> */}
 
                     <Col md={3} className="d-flex align-items-center justify-content-end">
                       {!branch.branch_id && (

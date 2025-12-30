@@ -315,10 +315,10 @@ const DoctorBookingsPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full border p-6 bg-white radius-8">
-      <h2 className="mb-4" style={{ fontSize: '24px', fontWeight: '600', color: '#2d3748' }}>
+    <div className="w-full border p-6 radius-8">
+      <h4 className="mb-4" style={{ fontSize: '5px', fontWeight: '600' }}>
         Doctor Appointment Bookings
-      </h2>
+      </h4>
 
       <div className="mb-4 border-bottom" style={{ borderColor: "var(--bs-border-color)" }}>
         <div className="d-flex gap-2 flex-wrap">
@@ -376,7 +376,7 @@ const DoctorBookingsPage: React.FC = () => {
       </div>
 
       {/* Search and Filter Section */}
-      <div className="mb-4 p-3" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+      <div className="mb-4 p-3">
         <div className="row g-3">
           {/* Search Input */}
           <div className="col-md-6 col-lg-4">

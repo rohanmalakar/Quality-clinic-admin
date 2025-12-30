@@ -218,7 +218,7 @@ export default function BranchSettingsPage() {
                             <div key={branch.id} className="col-12 col-sm-6 col-lg-4">
                                 <div className="card h-100 shadow-sm border">
                                     {/* Header */}
-                                    <div className="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+                                    <div className="card-header d-flex justify-content-between align-items-center  text-white">
                                         <h6 className="mb-0 fw-semibold text-truncate">
                                             <i className="ri-building-line me-2"></i>
                                             {branch.name_en}
@@ -293,7 +293,7 @@ export default function BranchSettingsPage() {
                                     <div className="card-footer border-top d-flex gap-2">
                                         <button
                                             onClick={() => handleEdit(branch)}
-                                            className="btn btn-warning btn-sm w-100 d-flex align-items-center justify-content-center gap-1"
+                                            className="btn opacity-75 btn-warning btn-sm w-100 d-flex align-items-center justify-content-center gap-1"
                                         >
                                             <i className="ri-edit-line"></i>
                                             Edit
@@ -301,7 +301,7 @@ export default function BranchSettingsPage() {
 
                                         <button
                                             onClick={() => handleDelete(branch.id)}
-                                            className="btn btn-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-1"
+                                            className="btn opacity-75 btn-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-1"
                                         >
                                             <i className="ri-delete-bin-line"></i>
                                             Delete

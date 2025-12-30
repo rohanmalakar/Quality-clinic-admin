@@ -259,9 +259,9 @@ const MasterLayout = ({ children }: { children: React.ReactNode }) => {
                             </Link>
                         </li>
                         <li className='dropdown'>
-                            <Link href='/financial'>
+                            <Link href='/booking'>
                                 <Icon icon='hugeicons:invoice-03' className='menu-icon' />
-                                <span>Financial</span>
+                                <span>Booking</span>
                             </Link>
                             <ul className='sidebar-submenu'>
                                 <li>

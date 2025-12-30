@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { isAfter, isBefore, parseISO, format } from 'date-fns';
 import { get, post } from '@/utils/network';
 import CancelModal from '../components/CancelModal';
+import CompleteModal from '../components/CompleteBookingModal';
 
 interface ServiceBooking {
   id: string;
@@ -16,9 +17,6 @@ interface ServiceBooking {
   branch_id: number;
   branch_name_en: string;
   branch_name_ar: string;
-  time_slot_id: number;
-  time_slot_start_time: string;
-  time_slot_end_time: string;
   booking_date: string;
   booking_status: string;
   service_actual_price?: string;
@@ -35,8 +33,13 @@ const ServiceBookingsPage: React.FC = () => {
   const [upcomingBookings, setUpcomingBookings] = useState<ServiceBooking[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [mainTab, setMainTab] = useState<'completed' | 'upcoming' | 'canceled'>('completed');
+  const [showCompleteModal, setShowCompleteModal] = useState<boolean>(false);
+  const [completeError, setCompleteError] = useState<string | null>(null);
+
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
+  const [isCompleting, setIsCompleting] = useState<boolean>(false);
   const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
+  const [completeBookingId, setCompleteBookingId] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -64,14 +67,11 @@ const ServiceBookingsPage: React.FC = () => {
       const currentDate = new Date();
 
       const completed = processedData.filter(booking =>
-        isBefore(parseISO(booking.booking_date), currentDate) ||
         booking.booking_status === "COMPLETED"
       );
 
       const upcoming = processedData.filter(booking =>
-        isAfter(parseISO(booking.booking_date), currentDate) &&
-        booking.booking_status !== "COMPLETED" &&
-        booking.booking_status !== "CANCELED"
+        booking.booking_status === "SCHEDULED" 
       );
 
       const canceled = processedData.filter(booking =>
@@ -105,17 +105,29 @@ const ServiceBookingsPage: React.FC = () => {
     setShowCancelModal(true);
   };
 
+  const handleOpenCompleteModal = (bookingId: string) => {
+    setCompleteBookingId(bookingId);
+    setCompleteError(null);
+    setShowCompleteModal(true);
+  };
+
   const handleCloseCancelModal = () => {
     setShowCancelModal(false);
     setCancelBookingId(null);
     setCancelError(null);
   };
 
+  const handleCloseCompleteModal = () => {
+    setShowCompleteModal(false);
+    setCompleteBookingId(null);
+    setCompleteError(null);
+  };
+
   const handleCancelBooking = async () => {
     if (!cancelBookingId) return;
 
     try {
-      setIsCancelling(true);
+      setIsCompleting(true);
       setCancelError(null);
 
       await post('/booking/service/cancel', {
@@ -129,7 +141,27 @@ const ServiceBookingsPage: React.FC = () => {
       console.error("Error cancelling booking:", error);
       setCancelError((error as Error).message || 'Failed to cancel booking');
     } finally {
-      setIsCancelling(false);
+      setIsCompleting(false);
+    }
+  };
+  const handleCompleteBooking = async () => {
+    if (!completeBookingId) return;
+
+    try {
+      setIsCompleting(true);
+      setCompleteError(null);
+
+      await post('/booking/service/complete', {
+        booking_id: completeBookingId,
+      });
+
+      handleCloseCompleteModal();
+      fetchBookings();
+    } catch (error) {
+      console.error("Error completing booking:", error);
+      setCompleteError((error as Error).message || 'Failed to complete booking');
+    } finally {
+      setIsCompleting(false);
     }
   };
 
@@ -225,19 +257,32 @@ const ServiceBookingsPage: React.FC = () => {
                     </td>
                     <td className="text-right font-medium">﷼{booking.final_total || "0.00"}</td>
                     {showActions && (
-                      <td className="text-center">
+                      <td className="text-center d-flex flex-column justify-content-center gap-2  align-items-center h-full">
                         <button
                           onClick={() => handleOpenCancelModal(booking.id)}
                           style={{
                             border: 'none',
-                            background: '#007bff',
+                            background: '#c42f0dff',
                             color: 'white',
                             padding: '4px 8px',
                             borderRadius: '3px',
                             cursor: 'pointer',
                             fontSize: '12px'
                           }}>
-                          Cancel/Refund
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => handleOpenCompleteModal(booking.id)}
+                          style={{
+                            border: 'none',
+                            background: '#2ce329ff',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '3px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}>
+                          Complete
                         </button>
                       </td>
                     )}
@@ -315,12 +360,12 @@ const ServiceBookingsPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full border p-6 bg-white radius-8">
-      <h2 className="mb-4" style={{ fontSize: '24px', fontWeight: '600', color: '#2d3748' }}>
+    <div className="w-full border p-6  radius-8">
+      <h4 className="mb-4  p-2 font-semibold">
         Service Bookings
-      </h2>
+      </h4>
 
-      <div className="mb-4 border-bottom" style={{ borderColor: "var(--bs-border-color)" }}>
+      <div className="mb-4 border-bottom">
         <div className="d-flex gap-2 flex-wrap">
           <button
             onClick={() => setMainTab("completed")}
@@ -376,7 +421,7 @@ const ServiceBookingsPage: React.FC = () => {
       </div>
 
       {/* Search and Filter Section */}
-      <div className="mb-4 p-3" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+      <div className="mb-4 p-3" >
         <div className="row g-3">
           {/* Search Input */}
           <div className="col-md-6 col-lg-4">
@@ -480,6 +525,13 @@ const ServiceBookingsPage: React.FC = () => {
         error={cancelError}
         onClose={handleCloseCancelModal}
         onConfirm={handleCancelBooking}
+      />
+      <CompleteModal
+        show={showCompleteModal}
+        isCompleting={isCompleting}
+        error={completeError}
+        onClose={handleCloseCompleteModal}
+        onConfirm={handleCompleteBooking}
       />
     </div>
   );
