@@ -50,8 +50,6 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
   oldSelectedBranches,
   oldSelectedTimeSlots,
 }) => {
-  console.log("oldSelectedBranches in adddoctor", oldSelectedBranches);
-  console.log("oldSelectedTimeSlots in adddoctor", oldSelectedTimeSlots);
   const [selectedBranches, setSelectedBranches] = useState<SelectedBranch[]>(
     []
   );
@@ -60,6 +58,7 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
   const [oldData, setOldData] = useState<OldData>({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<Doctor>({
     id: undefined,
     name_en: "",
@@ -92,16 +91,7 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
       });
 
       setImagePreviewUrl(doctor.photo_url || "");
-      console.log("doctor in adddoctor", doctor);
       fetchBranchesAndTimeSlots(doctor.id ?? 0);
-      console.log(
-        "selectedBranches in fetchbranchsand useeffect",
-        selectedBranches
-      );
-      console.log(
-        "selectedTimeSlots in fetchbranchsand useeffect",
-        selectedTimeSlots
-      );
     }
   }, [doctor]);
 
@@ -138,6 +128,39 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+   
+    if(!e.target.files || e.target.files.length === 0) {
+      return;
+    }
+    
+    const file = e.target.files[0];
+    const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedFormats.includes(file.type)) {
+      toast.error('Please upload only JPG, JPEG, or PNG images', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      e.target.value = ''; // Reset input
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      e.target.value = ''; // Reset input
+      return;
+    }
+
     if (e.target.files && e.target.files.length > 0) {
       const src = URL.createObjectURL(e.target.files[0]);
       setImagePreviewUrl(src);
@@ -159,15 +182,6 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
     }
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
-
-  // const handleSubmit = async () => {
-  //   if (doctor) {
-  //     handleUpdate();
-  //   } else {
-  //     handleCreate();
-  //   }
-  // };
-
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -265,9 +279,10 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
         pauseOnHover: true,
         draggable: true,
       });
-    } catch (e) {
-      console.log(e);
-      toast.error("failed to update doctor", {
+    } catch (e: any) {
+      console.error("Error updating doctor:", e);
+      const errorMessage = e?.message || "Failed to update doctor. Please try again.";
+      toast.error(errorMessage, {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -280,42 +295,67 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
 
   const handleCreate = async () => {
     try {
-      if (!formData.about_ar) {
-        throw ERRORS.DOCTOR_ABOUT_AR_REQUIRED;
-      }
-      if (!formData.about_en) {
-        throw ERRORS.DOCTOR_ABOUT_EN_REQUIRED;
-      }
-      if (formData.attended_patient <= 0) {
-        throw ERRORS.DOCTOR_ATTENDED_PATIENT_REQUIRED;
-      }
-      if (!formData.session_fees) {
-        throw ERRORS.DOCTOR_SESSION_FEES_REQUIRED;
-      }
-      if (!formData.total_experience) {
-        throw ERRORS.DOCTOR_TOTAL_EXPERIENCE_REQUIRED;
+      // Clear previous errors
+      setErrors({});
+      
+      // Validate all fields
+      const newErrors: Record<string, string> = {};
+      
+      if (!formData.name_en) {
+        newErrors.name_en = "English name is required";
       }
       if (!formData.name_ar) {
-        throw ERRORS.DOCTOR_NAME_AR_REQUIRED;
+        newErrors.name_ar = "Arabic name is required";
       }
-      if (!formData.name_en) {
-        throw ERRORS.DOCTOR_NAME_EN_REQUIRED;
+      if (!formData.about_ar) {
+        newErrors.about_ar = "Arabic about description is required";
+      }
+      if (!formData.about_en) {
+        newErrors.about_en = "English about description is required";
+      }
+      if (!formData.attended_patient || formData.attended_patient <= 0) {
+        newErrors.attended_patient = "Attended patients must be greater than 0";
+      }
+      if (!formData.session_fees || formData.session_fees <= 0) {
+        newErrors.session_fees = "Session fees must be greater than 0";
+      }
+      if (!formData.total_experience || formData.total_experience <= 0) {
+        newErrors.total_experience = "Total experience must be greater than 0";
       }
       if (!formData.qualification) {
-        throw ERRORS.DOCTOR_QUALIFICATION_REQUIRED;
+        newErrors.qualification = "Qualification is required";
       }
       if (!formData.languages) {
-        throw ERRORS.DOCTOR_LANGUAGES_REQUIRED;
+        newErrors.languages = "Languages are required";
       }
       if (!formData.photo_url) {
-        throw ERRORS.DOCTOR_PHOTO_URL_REQUIRED;
+        newErrors.photo_url = "Profile image is required";
       }
       if (selectedBranches.length === 0) {
-        throw ERRORS.DOCTOR_BRANCH_REQUIRED;
+        newErrors.branches = "At least one branch must be selected";
+        toast.error("Please select at least one branch", {
+          position: "top-right",
+          autoClose: 5000,
+        });
       }
       if (selectedTimeSlots.length === 0) {
-        throw ERRORS.DOCTOR_TIME_SLOT_REQUIRED;
+        newErrors.timeSlots = "At least one time slot must be added";
+        toast.error("Please add at least one time slot", {
+          position: "top-right",
+          autoClose: 5000,
+        });
       }
+      
+      // Check if there are any errors
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        toast.error("Please fill in all required fields correctly", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+        return;
+      }
+      
       const imageURL = await uploadImage(formData.photo_url);
       const data = {
         ...formData,
@@ -349,9 +389,10 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
         draggable: true,
       });
       onSuccess(response);
-    } catch (e) {
-      console.log(e);
-      toast.error("failed to create doctor", {
+    } catch (e: any) {
+      console.error("Error creating doctor:", e);
+      const errorMessage = e?.message || "Failed to create doctor. Please try again.";
+      toast.error(errorMessage, {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -365,7 +406,7 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
   return (
     <div>
       <h6 className="text-md text-primary-light mb-16">
-        Profile Image (Max Size 2Mb)
+        Profile Image (Max Size 5Mb - JPG, JPEG, PNG only) <span className="text-danger-600">*</span>
       </h6>
       <ToastContainer />
       {/* Upload Image */}
@@ -397,49 +438,60 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
             ></div>
           </div>
         </div>
+        {errors.photo_url && (
+          <div className="text-danger small mt-2">{errors.photo_url}</div>
+        )}
       </div>
 
       {/* Form */}
 
       <div>
         <div className="row">
-          <div className="col mb-20">
+          <div className="col-12 col-md-6 mb-20">
             <label
               htmlFor="name_en"
               className="form-label fw-semibold text-primary-light text-sm mb-8"
             >
-              Full Name (English)
+              Full Name (English) <span className="text-danger-600">*</span>
             </label>
             <input
               type="text"
-              className="form-control radius-8"
+              className={`form-control radius-8 ${errors.name_en ? 'is-invalid' : ''}`}
               id="name_en"
+              required
               placeholder="Enter Full Name"
               value={formData.name_en}
               onChange={handleChange}
             />
+            {errors.name_en && (
+              <div className="invalid-feedback d-block">{errors.name_en}</div>
+            )}
           </div>
 
-          <div className="col mb-20">
+          <div className="col-12 col-md-6 mb-20">
             <label
               htmlFor="name_ar"
               className="form-label fw-semibold text-primary-light text-sm mb-8"
             >
-              Full Name (Arabic)
+              Full Name (Arabic) <span className="text-danger-600">*</span>
             </label>
             <input
               type="text"
-              className="form-control radius-8"
+              required
+              className={`form-control radius-8 ${errors.name_ar ? 'is-invalid' : ''}`}
               id="name_ar"
               placeholder="Enter Full Name"
               value={formData.name_ar}
               onChange={handleChange}
             />
+            {errors.name_ar && (
+              <div className="invalid-feedback d-block">{errors.name_ar}</div>
+            )}
           </div>
         </div>
 
         <div className="row">
-          <div className="col mb-20">
+          <div className="col-12 col-md-6 mb-20">
             <label
               htmlFor="attended_patient"
               className="form-label fw-semibold text-primary-light text-sm mb-8"
@@ -448,15 +500,20 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
             </label>
             <input
               type="number"
-              className="form-control radius-8"
+              className={`form-control radius-8 ${errors.attended_patient ? 'is-invalid' : ''}`}
               id="attended_patient"
+              required
               placeholder="Enter number of attended patients"
               value={formData.attended_patient}
               onChange={handleChange}
+              min="0"
             />
+            {errors.attended_patient && (
+              <div className="invalid-feedback d-block">{errors.attended_patient}</div>
+            )}
           </div>
 
-          <div className="col mb-20">
+          <div className="col-12 col-md-6 mb-20">
             <label
               htmlFor="session_fees"
               className="form-label fw-semibold text-primary-light text-sm mb-8"
@@ -465,47 +522,61 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
             </label>
             <input
               type="number"
-              className="form-control radius-8"
+              required
+              className={`form-control radius-8 ${errors.session_fees ? 'is-invalid' : ''}`}
               id="session_fees"
               placeholder="Enter session fees"
               value={formData.session_fees}
               onChange={handleChange}
+              min="0"
             />
+            {errors.session_fees && (
+              <div className="invalid-feedback d-block">{errors.session_fees}</div>
+            )}
           </div>
         </div>
         <div className="row">
-          <div className="col mb-20">
+          <div className="col-12 col-md-6 mb-20">
             <label
               htmlFor="total_experience"
               className="form-label fw-semibold text-primary-light text-sm mb-8"
             >
-              Total Experience <span className="text-danger-600">*</span>
+              Total Experience (Years) <span className="text-danger-600">*</span>
             </label>
             <input
               type="number"
-              className="form-control radius-8"
+              required
+              className={`form-control radius-8 ${errors.total_experience ? 'is-invalid' : ''}`}
               id="total_experience"
               placeholder="Enter years of experience"
               value={formData.total_experience}
               onChange={handleChange}
+              min="0"
             />
+            {errors.total_experience && (
+              <div className="invalid-feedback d-block">{errors.total_experience}</div>
+            )}
           </div>
 
-          <div className="col mb-20">
+          <div className="col-12 col-md-6 mb-20">
             <label
               htmlFor="qualification"
               className="form-label fw-semibold text-primary-light text-sm mb-8"
             >
-              qualification
+              Qualification <span className="text-danger-600">*</span>
             </label>
             <input
               type="text"
-              className="form-control radius-8"
+              className={`form-control radius-8 ${errors.qualification ? 'is-invalid' : ''}`}
               id="qualification"
+              required
               placeholder="Enter qualification"
               value={formData.qualification}
               onChange={handleChange}
             />
+            {errors.qualification && (
+              <div className="invalid-feedback d-block">{errors.qualification}</div>
+            )}
           </div>
         </div>
         <div className="mb-20">
@@ -513,16 +584,20 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
             htmlFor="languages"
             className="form-label fw-semibold text-primary-light text-sm mb-8"
           >
-            languages
+            Languages <span className="text-danger-600">*</span>
           </label>
           <input
             type="text"
-            className="form-control radius-8"
+            className={`form-control radius-8 ${errors.languages ? 'is-invalid' : ''}`}
             id="languages"
-            placeholder="Enter languages"
+            required
+            placeholder="Enter languages (e.g., English, Arabic)"
             value={formData.languages}
             onChange={handleChange}
           />
+          {errors.languages && (
+            <div className="invalid-feedback d-block">{errors.languages}</div>
+          )}
         </div>
 
         <div className="mb-20">
@@ -530,15 +605,20 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
             htmlFor="about_en"
             className="form-label fw-semibold text-primary-light text-sm mb-8"
           >
-            About (English)
+            About (English) <span className="text-danger-600">*</span>
           </label>
           <textarea
-            className="form-control radius-8"
+            className={`form-control radius-8 ${errors.about_en ? 'is-invalid' : ''}`}
             id="about_en"
+            required
             placeholder="Write description..."
             value={formData.about_en}
             onChange={handleChange}
+            rows={4}
           />
+          {errors.about_en && (
+            <div className="invalid-feedback d-block">{errors.about_en}</div>
+          )}
         </div>
 
         <div className="mb-20">
@@ -546,15 +626,20 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
             htmlFor="about_ar"
             className="form-label fw-semibold text-primary-light text-sm mb-8"
           >
-            About (Arabic)
+            About (Arabic) <span className="text-danger-600">*</span>
           </label>
           <textarea
-            className="form-control radius-8"
+            className={`form-control radius-8 ${errors.about_ar ? 'is-invalid' : ''}`}
             id="about_ar"
+            required
             placeholder="Write description..."
             value={formData.about_ar}
             onChange={handleChange}
+            rows={4}
           />
+          {errors.about_ar && (
+            <div className="invalid-feedback d-block">{errors.about_ar}</div>
+          )}
         </div>
         {/* Branch Selection */}
         <BranchSelection
@@ -569,12 +654,9 @@ const AddUserLayer: React.FC<AddUserLayerProps> = ({
           setSelectedTimeSlots={setSelectedTimeSlots}
         />
         <div className="col-12">
-          {/* <button onClick={handleSubmit} className="btn btn-primary">
-            {doctor ? "Update Doctor" : "Add Doctor"}
-          </button> */}
           <button
             onClick={handleSubmit}
-            className="btn btn-primary"
+            className="btn btn-primary w-100 w-md-auto px-5"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

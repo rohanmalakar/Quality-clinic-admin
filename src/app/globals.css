@@ -1,5 +1,6 @@
+@import "tailwindcss";
+
 @import url("~/public/assets/css/remixicon.css");
-@import url("~/public/assets/css/lib/bootstrap.min.css");
 @import url("~/public/assets/css/lib/apexcharts.css");
 @import url("~/public/assets/css/lib/dataTables.min.css");
 @import url("~/public/assets/css/lib/dataTables.min.css");

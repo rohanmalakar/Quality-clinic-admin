@@ -50,19 +50,51 @@ const AddCategory: React.FC<AddCategoryProps> = ({ onSuccess }) => {
 
   const handleENFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      if (e.target.files && e.target.files.length > 0) {
-        const src = URL.createObjectURL(e.target.files[0]);
-        setFormData((prev) => ({ ...prev, image_en: src as string }));
+      const file = e.target.files[0];
+      
+      // Check file format
+      const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedFormats.includes(file.type)) {
+        alert('Please upload only JPG, JPEG, or PNG images.');
+        e.target.value = ''; // Reset input
+        return;
       }
+      
+      // Check file size (5MB = 5 * 1024 * 1024 bytes)
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        alert('File size must be less than 5 MB.');
+        e.target.value = ''; // Reset input
+        return;
+      }
+      
+      const src = URL.createObjectURL(file);
+      setFormData((prev) => ({ ...prev, image_en: src as string }));
     }
   };
 
   const handleARFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      if (e.target.files && e.target.files.length > 0) {
-        const src = URL.createObjectURL(e.target.files[0]);
-        setFormData((prev) => ({ ...prev, image_ar: src as string }));
+      const file = e.target.files[0];
+      
+      // Check file format
+      const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedFormats.includes(file.type)) {
+        alert('Please upload only JPG, JPEG, or PNG images.');
+        e.target.value = ''; // Reset input
+        return;
       }
+      
+      // Check file size (5MB = 5 * 1024 * 1024 bytes)
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        alert('File size must be less than 5 MB.');
+        e.target.value = ''; // Reset input
+        return;
+      }
+      
+      const src = URL.createObjectURL(file);
+      setFormData((prev) => ({ ...prev, image_ar: src as string }));
     }
   };
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -192,7 +224,7 @@ const AddCategory: React.FC<AddCategoryProps> = ({ onSuccess }) => {
                                   <input
                                     id="upload-file-1"
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/jpeg,image/jpg,image/png"
                                     hidden
                                     onChange={handleENFileChange}
                                   />
@@ -241,7 +273,7 @@ const AddCategory: React.FC<AddCategoryProps> = ({ onSuccess }) => {
                       id="upload-file"
                       type="file"
                       hidden
-                      accept="image/*"
+                      accept="image/jpeg,image/jpg,image/png"
                       onChange={handleARFileChange}
                     />
                   </label>

@@ -34,6 +34,10 @@ const BranchSelection: React.FC<{
   }, []);
 
   const addBranchRow = () => {
+    if (selectedBranches.length >= 7) {
+      alert("You cannot add more than 7 branches (one for each day of the week).");
+      return;
+    }
     setSelectedBranches([...selectedBranches, { id: 0, name_en: "", availableDays: [] }]);
   };
 
@@ -47,16 +51,24 @@ const BranchSelection: React.FC<{
   };
 
   const handleDaySelection = (index: number, day: number, isChecked: boolean) => {
-    const updatedBranches = selectedBranches.map((branch, i) =>
-      i === index
-        ? {
-            ...branch,
-            availableDays: isChecked
-              ? [...branch.availableDays, day]
-              : branch.availableDays.filter((d) => d !== day),
-          }
-        : branch
-    );
+    const updatedBranches = selectedBranches.map((branch, i) => {
+      if (i === index) {
+        // Add or remove day from current branch
+        return {
+          ...branch,
+          availableDays: isChecked
+            ? [...branch.availableDays, day]
+            : branch.availableDays.filter((d) => d !== day),
+        };
+      } else if (isChecked) {
+        // Remove the day from all other branches if it's being added to current branch
+        return {
+          ...branch,
+          availableDays: branch.availableDays.filter((d) => d !== day),
+        };
+      }
+      return branch;
+    });
     setSelectedBranches(updatedBranches);
   };
 
@@ -75,10 +87,11 @@ const BranchSelection: React.FC<{
           variant="primary"
           size="sm"
           onClick={addBranchRow}
-          disabled={loading}
+          disabled={loading || selectedBranches.length >= 7}
           className="d-flex align-items-center"
+          title={selectedBranches.length >= 7 ? "Maximum 7 branches allowed" : ""}
         >
-          <span className="me-1">+</span> Add Branch
+          <span className="me-1">+</span> Add Branch {selectedBranches.length >= 7 && "(Max reached)"}
         </Button>
       </Card.Header>
 
@@ -121,32 +134,31 @@ const BranchSelection: React.FC<{
                   </Col>
 
                   <Col md={5}>
-                 
-                  <Form.Group controlId={`available-days-${index}`} className="mb-3 d-flex justify-content-center align-items-center">
-                    <div className="d-flex flex-wrap gap-1 justify-content-center align-items-center">
-                      {["M", "T", "W", "T", "F", "S", "S"].map((shortDay, dayIndex) => {
-                        const fullDay = [1,2,3,4,5,6,7][dayIndex];
-                        const isSelected = branch.availableDays?.includes(fullDay);
-                        
-                        return (
-                          <Button 
-                            key={fullDay}
-                            variant={isSelected ? "primary" : "outline-secondary"}
-                            size="sm"
-                            onClick={() => handleDaySelection(index, fullDay, !isSelected)}
-                            className="rounded-circle d-flex align-items-center justify-content-center"
-                            style={{ width: "32px", height: "32px", padding: "0" }}
-                          >
-                            {shortDay}
-                          </Button>    
-                            );
-                          })}
-                    </div>
-                  </Form.Group>
+
+                    <Form.Group controlId={`available-days-${index}`} className="mb-3 d-flex justify-content-center align-items-center">
+                      <div className="d-flex flex-wrap gap-1 justify-content-center align-items-center">
+                        {["M", "T", "W", "T", "F", "S", "S"].map((shortDay, dayIndex) => {
+                          const fullDay = [1, 2, 3, 4, 5, 6, 7][dayIndex];
+                          const isSelected = branch.availableDays?.includes(fullDay);
+
+                          return (
+                            <Button
+                              key={fullDay}
+                              variant={isSelected ? "primary" : "outline-secondary"}
+                              size="sm"
+                              onClick={() => handleDaySelection(index, fullDay, !isSelected)}
+                              className="rounded-circle d-flex align-items-center justify-content-center"
+                              style={{ width: "32px", height: "32px", padding: "0" }}
+                            >
+                              {shortDay}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </Form.Group>
                   </Col>
 
                   <Col md={2} className="d-flex align-items-center justify-content-end">
-                    {!branch.id && <small className="text-danger me-2">Select branch</small>}
                     <Button variant="outline-danger" size="sm" onClick={() => removeBranch(index)}>
                       Remove
                     </Button>

@@ -566,7 +566,7 @@ const BookingInvoice: React.FC = () => {
                               fontSize: '12px',
                               marginRight: '4px'
                             }}>
-                            Cancel/Refund
+                            Cancel
                           </button>
                         </td>
                       </tr>

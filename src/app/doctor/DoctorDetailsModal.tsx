@@ -47,7 +47,7 @@ const DoctorDetailsModal: React.FC<DoctorDetailsModalProps> = ({
               <img
                 src={doctor.photo_url || "assets/images/user-grid/user-grid-img1.png"}
                 alt={doctor.name_en}
-                className="rounded-circle border border-2"
+                className="rounded-circle "
                 style={{
                   width: "120px",
                   height: "120px",
@@ -56,7 +56,7 @@ const DoctorDetailsModal: React.FC<DoctorDetailsModalProps> = ({
               />
               {doctor.is_active == 1 ? (
               <span
-                className="position-absolute bottom-0 end-0 bg-success-600 rounded-circle border border-2 border-white d-flex align-items-center justify-content-center"
+                className="position-absolute bottom-0 end-0 bg-success-600 rounded-circle border-white d-flex align-items-center justify-content-center"
                 style={{
                   width: "32px",
                   height: "32px",
@@ -67,7 +67,7 @@ const DoctorDetailsModal: React.FC<DoctorDetailsModalProps> = ({
               </span>
             ) : (
               <span
-                className="position-absolute bottom-0 end-0 bg-danger-600 rounded-circle border border-2 border-white d-flex align-items-center justify-content-center"
+                className="position-absolute bottom-0 end-0 bg-danger-600 rounded-circle  border-white d-flex align-items-center justify-content-center"
                 style={{
                   width: "32px",
                   height: "32px",

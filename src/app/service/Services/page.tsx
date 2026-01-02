@@ -396,10 +396,18 @@ const ServiceCard = ({ service, onClick }: { service: any; onClick: () => void }
         <div className="card-body p-20">
           {/* Service Name and Category */}
           <div className="mb-12">
-            <h5 className="fw-semibold mb-8 text-neutral-900 dark:text-neutral-100">{service.name_en}</h5>
+            <h6
+             style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+             className="fw-semibold mb-8 text-neutral-900 dark:text-neutral-100">{service.name_en}</h6>
             <div className="d-flex align-items-center">
               <Icon icon="material-symbols:category" className="text-neutral-400 me-2" />
-              <span className="text-secondary-light fs-14">{service.category_en}</span>
+              <span 
+              className="text-secondary-light fs-14">{service.category_en}</span>
             </div>
           </div>
 

@@ -45,6 +45,7 @@ const DoctorBookingsPage: React.FC = () => {
   const [selectedDateTo, setSelectedDateTo] = useState<string>('');
   const [branches, setBranches] = useState<Array<{ id: number; name: string }>>([]);
 
+
   const processBookings = (bookings: DoctorBooking[]): DoctorBooking[] => {
     return bookings.map(booking => {
       if (booking.vat_percentage === "") return booking;
@@ -81,13 +82,13 @@ const DoctorBookingsPage: React.FC = () => {
       setCompletedBookings(completed);
       setUpcomingBookings(upcoming);
       setCanceledBookings(canceled);
-      
+
       // Extract unique branches
       const uniqueBranches = Array.from(
         new Set(processedData.map(b => JSON.stringify({ id: b.branch_id, name: b.branch_name_en })))
       ).map(str => JSON.parse(str));
       setBranches(uniqueBranches);
-      
+
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching doctor bookings:", error);
@@ -168,76 +169,170 @@ const DoctorBookingsPage: React.FC = () => {
     return format(parseISO(date), 'MMM dd, yyyy');
   };
 
-  const renderBookingTable = (bookings: DoctorBooking[], showActions: boolean = false) => {
+  const renderBookingTable = (
+    bookings: DoctorBooking[],
+    showActions: boolean = false
+  ) => {
     if (bookings.length === 0) {
       return (
-        <div className="text-center py-4">
+        <div className="text-center py-4 text-muted">
           No doctor bookings found.
         </div>
       );
     }
 
     return (
-      <div style={{ overflowX: 'auto', width: '100%' }}>
-        <div style={{ border: '1px solid #e2e8f0', borderRadius: '4px' }}>
+      <div style={{ width: "100%", overflowX: "auto" }}>
+        <div className="border rounded">
           <table style={{ minWidth: '100%', width: '100%', borderCollapse: 'collapse' }} className="table bordered-table sm-table mb-0">
+            {/* ================= HEADER ================= */}
             <thead>
-              <tr style={{ position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 1 }}>
-                <th scope="col">Order ID</th>
-                <th scope="col">Customer Name</th>
-                <th scope="col">Doctor Name</th>
-                <th scope="col">Date</th>
-                <th scope="col">Branch</th>
-                <th scope="col" className="text-right">Total Amount</th>
-                <th scope="col" className="text-right">Discount</th>
-                <th scope="col" className="text-right">VAT</th>
-                <th scope="col" className="text-right">Final Total</th>
-                {showActions && <th scope="col" className="text-center">Actions</th>}
+              <tr className="border-bottom">
+                {[
+                  "Order ID",
+                  "Customer",
+                  "Doctor",
+                  "Date",
+                  "Branch",
+                  "Total Amount",
+                  "Discount",
+                  "VAT",
+                  "Final Total",
+                ].map((header) => (
+                  <th
+                    key={header}
+                    scope="col"
+                    className={
+                      [
+                        "Total Amount",
+                        "Discount",
+                        "VAT",
+                        "Final Total",
+                      ].includes(header)
+                        ? "text-end fw-semibold"
+                        : "fw-semibold"
+                    }
+                    style={{
+                      fontSize: "13px",
+                      padding: "12px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {header}
+                  </th>
+                ))}
+                {showActions && (
+                  <th
+                    scope="col"
+                    className="text-center fw-semibold"
+                    style={{ fontSize: "13px", padding: "12px" }}
+                  >
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
+
+            {/* ================= BODY ================= */}
             <tbody>
               {bookings.map((booking) => {
-                const discountAmount = booking.actual_price && booking.discounted_price
-                  ? (parseFloat(booking.actual_price) - parseFloat(booking.discounted_price)).toFixed(2)
-                  : "0.00";
+                const discountAmount =
+                  booking.actual_price && booking.discounted_price
+                    ? (
+                      parseFloat(booking.actual_price) -
+                      parseFloat(booking.discounted_price)
+                    ).toFixed(2)
+                    : "0.00";
 
                 return (
-                  <tr key={booking.id}>
-                    <td>{booking.id}</td>
-                    <td>
-                      <div>
-                        <span>{booking.user_full_name}</span>
-                        <div>
-                          <span style={{ fontSize: '12px', color: '#666' }}>{booking.user_email}</span>
+                  <tr key={booking.id} className="align-middle border-bottom">
+                    {/* Order ID */}
+                    <td className="fw-medium" style={{ padding: "12px" }}>
+                      {booking.id}
+                    </td>
+
+                    {/* Customer */}
+                    <td style={{ padding: "12px" }}>
+                      <div style={{ lineHeight: "1.3" }}>
+                        <div className="fw-semibold">
+                          {booking.user_full_name}
                         </div>
-                        <div>
-                          <span style={{ fontSize: '12px', color: '#666' }}>{booking.user_phone_number}</span>
+                        <div className="small ">
+                          {booking.user_email}
+                        </div>
+                        <div className="small ">
+                          {booking.user_phone_number}
                         </div>
                       </div>
                     </td>
-                    <td>{booking.doctor_name_en}</td>
-                    <td>{formatDate(booking.booking_date)}</td>
-                    <td>{booking.branch_name_en}</td>
-                    <td className="text-right">﷼{booking.actual_price || "0.00"}</td>
-                    <td className="text-right">﷼{discountAmount}</td>
-                    <td className="text-right">
-                      {booking.vat_percentage || 15}% (﷼{booking.vat_amount || "0.00"})
+
+                    {/* Doctor */}
+                    <td className="fw-medium" style={{ padding: "12px" }}>
+                      {booking.doctor_name_en}
                     </td>
-                    <td className="text-right font-medium">﷼{booking.final_total || "0.00"}</td>
+
+                    {/* Date */}
+                    <td
+                      style={{
+                        padding: "12px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {formatDate(booking.booking_date)}
+                    </td>
+
+                    {/* Branch */}
+                    <td style={{ padding: "12px" }}>
+                      {booking.branch_name_en}
+                    </td>
+
+                    {/* Total Amount */}
+                    <td
+                      className="text-end fw-medium"
+                      style={{ padding: "12px" }}
+                    >
+                      ﷼{booking.actual_price || "0.00"}
+                    </td>
+
+                    {/* Discount */}
+                    <td
+                      className="text-end "
+                      style={{ padding: "12px" }}
+                    >
+                      ﷼{discountAmount}
+                    </td>
+
+                    {/* VAT */}
+                    <td className="text-end" style={{ padding: "12px" }}>
+                      <div style={{ fontSize: "13px" }}>
+                        {booking.vat_percentage || 15}%
+                      </div>
+                      <div className="small">
+                        (﷼{booking.vat_amount || "0.00"})
+                      </div>
+                    </td>
+
+                    {/* Final Total */}
+                    <td
+                      className="text-end fw-semibold"
+                      style={{ padding: "12px" }}
+                    >
+                      ﷼{booking.final_total || "0.00"}
+                    </td>
+
+                    {/* Actions */}
                     {showActions && (
-                      <td className="text-center">
+                      <td
+                        className="text-center"
+                        style={{ padding: "12px" }}
+                      >
                         <button
-                          onClick={() => handleOpenCancelModal(booking.id)}
-                          style={{
-                            border: 'none',
-                            background: '#007bff',
-                            color: 'white',
-                            padding: '4px 8px',
-                            borderRadius: '3px',
-                            cursor: 'pointer',
-                            fontSize: '12px'
-                          }}>
-                          Cancel/Refund
+                          onClick={() =>
+                            handleOpenCancelModal(booking.id)
+                          }
+                          className="btn btn-outline-danger btn-sm px-3"
+                        >
+                          Cancel
                         </button>
                       </td>
                     )}
@@ -250,6 +345,7 @@ const DoctorBookingsPage: React.FC = () => {
       </div>
     );
   };
+
 
   if (isLoading) {
     return <div className="text-center py-3">Loading doctor bookings...</div>;
@@ -276,12 +372,12 @@ const DoctorBookingsPage: React.FC = () => {
 
     // Date range filter
     if (selectedDateFrom) {
-      filtered = filtered.filter(booking => 
+      filtered = filtered.filter(booking =>
         new Date(booking.booking_date) >= new Date(selectedDateFrom)
       );
     }
     if (selectedDateTo) {
-      filtered = filtered.filter(booking => 
+      filtered = filtered.filter(booking =>
         new Date(booking.booking_date) <= new Date(selectedDateTo)
       );
     }
@@ -316,59 +412,53 @@ const DoctorBookingsPage: React.FC = () => {
 
   return (
     <div className="w-full border p-6 radius-8">
-      <h4 className="mb-4" style={{ fontSize: '5px', fontWeight: '600' }}>
-        Doctor Appointment Bookings
-      </h4>
+      <h6 className="" >
+        Doctor Bookings
+      </h6>
 
       <div className="mb-4 border-bottom" style={{ borderColor: "var(--bs-border-color)" }}>
-        <div className="d-flex gap-2 flex-wrap">
+        <div className="d-flex gap-2 py-3 flex-wrap">
           <button
             onClick={() => setMainTab("completed")}
-            className={`btn btn-sm px-4 py-2 fw-semibold d-flex align-items-center gap-2 ${
-              mainTab === "completed"
-                ? "text-primary border-bottom border-3 border-primary"
+            className={`btn btn-sm px-6 rounded-4 py-4 fw-semibold d-flex align-items-center gap-2  ${mainTab === "completed"
+                ? "text-primary border-3 border-primary"
                 : "text-secondary"
-            }`}
+              }`}
             style={{ background: "transparent", borderRadius: 0 }}
           >
             Completed
-            <span className={`badge rounded-pill ${
-              mainTab === "completed" ? "bg-primary text-white" : "bg-secondary-subtle text-secondary"
-            }`}>
+            <span className={`badge rounded-pill ${mainTab === "completed" ? "bg-primary text-white" : "bg-secondary-subtle text-secondary"
+              }`}>
               {completedBookings.length}
             </span>
           </button>
 
           <button
             onClick={() => setMainTab("upcoming")}
-            className={`btn btn-sm px-4 py-2 fw-semibold d-flex align-items-center gap-2 ${
-              mainTab === "upcoming"
-                ? "text-primary border-bottom border-3 border-primary"
+            className={`btn btn-sm px-6 rounded-4 py-4 fw-semibold d-flex align-items-center gap-2  ${mainTab === "upcoming"
+                ? "text-primary  border-3 border-primary"
                 : "text-secondary"
-            }`}
+              }`}
             style={{ background: "transparent", borderRadius: 0 }}
           >
             Upcoming
-            <span className={`badge rounded-pill ${
-              mainTab === "upcoming" ? "bg-primary text-white" : "bg-secondary-subtle text-secondary"
-            }`}>
+            <span className={`badge rounded-pill ${mainTab === "upcoming" ? "bg-primary text-white" : "bg-secondary-subtle text-secondary"
+              }`}>
               {upcomingBookings.length}
             </span>
           </button>
 
           <button
             onClick={() => setMainTab("canceled")}
-            className={`btn btn-sm px-4 py-2 fw-semibold d-flex align-items-center gap-2 ${
-              mainTab === "canceled"
-                ? "text-primary border-bottom border-3 border-primary"
+            className={`btn btn-sm px-6 rounded-4 py-4 fw-semibold d-flex align-items-center gap-2 ${mainTab === "canceled"
+                ? "text-primary  border-3 border-primary"
                 : "text-secondary"
-            }`}
+              }`}
             style={{ background: "transparent", borderRadius: 0 }}
           >
             Canceled
-            <span className={`badge rounded-pill ${
-              mainTab === "canceled" ? "bg-primary text-white" : "bg-secondary-subtle text-secondary"
-            }`}>
+            <span className={`badge rounded-pill ${mainTab === "canceled" ? "bg-primary text-white" : "bg-secondary-subtle text-secondary"
+              }`}>
               {canceledBookings.length}
             </span>
           </button>

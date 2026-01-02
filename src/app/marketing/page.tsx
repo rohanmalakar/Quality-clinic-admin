@@ -88,9 +88,18 @@ const AddNewBanner: React.FC<AddNewBannerProps> = ({ onSuccess }) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       
-      // Validate file size (2MB max)
-      if (file.size > 2 * 1024 * 1024) {
-        setErrors(prev => ({...prev, enImage: 'File size must be less than 2MB'}));
+      // Check file format
+      const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedFormats.includes(file.type)) {
+        setErrors(prev => ({...prev, enImage: 'Please upload only JPG, JPEG, or PNG images'}));
+        e.target.value = ''; // Reset input
+        return;
+      }
+      
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({...prev, enImage: 'File size must be less than 5MB'}));
+        e.target.value = ''; // Reset input
         return;
       }
       
@@ -110,9 +119,18 @@ const AddNewBanner: React.FC<AddNewBannerProps> = ({ onSuccess }) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       
-      // Validate file size (2MB max)
-      if (file.size > 2 * 1024 * 1024) {
-        setErrors(prev => ({...prev, arImage: 'File size must be less than 2MB'}));
+      // Check file format
+      const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedFormats.includes(file.type)) {
+        setErrors(prev => ({...prev, arImage: 'Please upload only JPG, JPEG, or PNG images'}));
+        e.target.value = ''; // Reset input
+        return;
+      }
+      
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({...prev, arImage: 'File size must be less than 5MB'}));
+        e.target.value = ''; // Reset input
         return;
       }
       
@@ -329,7 +347,7 @@ const AddNewBanner: React.FC<AddNewBannerProps> = ({ onSuccess }) => {
             <div className="col-md-6">
               <label className="form-label fw-semibold text-neutral-900">
                 English Banner <span className="text-danger">*</span>
-                <span className="text-secondary-light text-sm ms-2">(Max 2MB)</span>
+                <span className="text-secondary-light text-sm ms-2">(Max 5MB - JPG, JPEG, PNG only)</span>
               </label>
               <div className="upload-image-wrapper">
                 {enImagePreview ? (
@@ -358,12 +376,12 @@ const AddNewBanner: React.FC<AddNewBannerProps> = ({ onSuccess }) => {
                       Click to Upload
                     </span>
                     <span className="text-xs text-secondary-light">
-                      PNG, JPG up to 2MB
+                      PNG, JPG, JPEG up to 5MB
                     </span>
                     <input
                       id="upload-file-en"
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/jpg,image/png"
                       hidden
                       onChange={handleENFileChange}
                     />
@@ -381,7 +399,7 @@ const AddNewBanner: React.FC<AddNewBannerProps> = ({ onSuccess }) => {
             <div className="col-md-6">
               <label className="form-label fw-semibold text-neutral-900">
                 Arabic Banner <span className="text-danger">*</span>
-                <span className="text-secondary-light text-sm ms-2">(Max 2MB)</span>
+                <span className="text-secondary-light text-sm ms-2">(Max 5MB - JPG, JPEG, PNG only)</span>
               </label>
               <div className="upload-image-wrapper">
                 {arImagePreview ? (
@@ -410,13 +428,13 @@ const AddNewBanner: React.FC<AddNewBannerProps> = ({ onSuccess }) => {
                       Click to Upload
                     </span>
                     <span className="text-xs text-secondary-light">
-                      PNG, JPG up to 2MB
+                      PNG, JPG, JPEG up to 5MB
                     </span>
                     <input
                       id="upload-file-ar"
                       type="file"
                       hidden
-                      accept="image/*"
+                      accept="image/jpeg,image/jpg,image/png"
                       onChange={handleARFileChange}
                     />
                   </label>

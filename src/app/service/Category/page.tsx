@@ -58,14 +58,13 @@ const CategoryPage = () => {
   }
 
   return (
-    <div className="card h-100 p-0 rounded-3 border border-neutral-200 dark:border-neutral-600 shadow-sm">
+    <div className="card h-100 p-3 rounded-3 border border-neutral-200 dark:border-neutral-600 shadow-sm">
       {/* Header Section */}
       <div className="card-header bg-base border-bottom border-neutral-200 dark:border-neutral-600 py-3 px-4">
         <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
           <div>
             <h1 className="h4 fw-bold mb-1 text-neutral-900 dark:text-neutral-100">Available Categories</h1>
             <p className="text-secondary-light mb-0 small">
-              <Icon icon="mdi:tag-multiple" className="me-1" />
               Manage your service categories
             </p>
           </div>

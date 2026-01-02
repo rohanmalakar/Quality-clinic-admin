@@ -58,8 +58,8 @@ const UpdateCategory = ({ editData, onSuccess }: Props) => {
     setFormData(prev => ({ ...prev, image_en: "" }));
   }
   const handleSubmit = async () => {
-    try  {
-      if(!editData) {
+    try {
+      if (!editData) {
         return
       }
       let data: any = {}
@@ -83,13 +83,13 @@ const UpdateCategory = ({ editData, onSuccess }: Props) => {
       if (Object.keys(data).length === 0) {
         throw ERRORS.NO_CHANGES
       }
-      const category =  await put(`/service/category/${editData.id}`, data);
+      const category = await put(`/service/category/${editData.id}`, data);
       onSuccess(category)
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
   };
- 
+
   return (
     <div className="card">
       <div className="card-header">
@@ -98,21 +98,21 @@ const UpdateCategory = ({ editData, onSuccess }: Props) => {
       <div className="card-body">
         <div>
           <div className="row gy-3">
-          <div className="col-12">
-                  <label className="form-label">Category</label>
-    <select 
-      className="form-control"
-      name="type"
-      onChange={handleChange}
-      value={formData.type}
-    >
-      <option value="">Select a category</option>
-      <option value="DENTIST">Dentist</option>
-      <option value="DERMATOLOGIST">Dermatology</option>
-    </select>
-  
+            <div className="col-12">
+              <label className="form-label">Category</label>
+              <select
+                className="form-control"
+                name="type"
+                onChange={handleChange}
+                value={formData.type}
+              >
+                <option value="">Select a category</option>
+                <option value="DENTIST">Dentist</option>
+                <option value="DERMATOLOGIST">Dermatology</option>
+              </select>
 
-        </div>
+
+            </div>
 
             <div className="col-12">
               <label className="form-label">Category Name (English)</label>
@@ -122,106 +122,106 @@ const UpdateCategory = ({ editData, onSuccess }: Props) => {
             <div className="col-12">
               <label className="form-label">Category Name (Arabic)</label>
               <input type="text" name="name_ar" className="form-control" value={formData.name_ar} onChange={handleChange} required />
+            </div>
+            <div className="row">
+              <div className="col-md-6">
+                <label className="form-label fw-bold text-neutral-900">
+                  English Thumbnail
+                </label>
+                <div className="upload-image-wrapper">
+                  {formData.image_en ? (
+                    <div className="uploaded-img position-relative h-160-px w-100 border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50">
+                      <button
+                        type="button"
+                        onClick={handleENRemoveImage}
+                        className="uploaded-img__remove position-absolute top-0 end-0 z-1 text-2xxl line-height-1 me-8 mt-8 d-flex"
+                        aria-label="Remove uploaded image"
+                      >
+                        <Icon
+                          icon="radix-icons:cross-2"
+                          className="text-xl text-danger-600"
+                        ></Icon>
+                      </button>
+                      <img
+                        id="uploaded-img__preview"
+                        className="w-100 h-100 object-fit-cover"
+                        src={formData.image_en}
+                        alt="Uploaded"
+                      />
+                    </div>
+                  ) : (
+                    <label
+                      className="upload-file h-160-px w-100 border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50 bg-hover-neutral-200 d-flex align-items-center flex-column justify-content-center gap-1"
+                      htmlFor="upload-file-1"
+                    >
+                      <Icon
+                        icon="solar:camera-outline"
+                        className="text-xl text-secondary-light"
+                      ></Icon>
+                      <span className="fw-semibold text-secondary-light">
+                        Upload
+                      </span>
+                      <input
+                        id="upload-file-1"
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={handleENFileChange}
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
-           <div className="row">
-                       <div className="col-md-6">
-                             <label className="form-label fw-bold text-neutral-900">
-                                         English Thumbnail
-                                       </label>
-                                       <div className="upload-image-wrapper">
-                                         {formData.image_en ? (
-                                           <div className="uploaded-img position-relative h-160-px w-100 border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50">
-                                             <button
-                                               type="button"
-                                               onClick={handleENRemoveImage}
-                                               className="uploaded-img__remove position-absolute top-0 end-0 z-1 text-2xxl line-height-1 me-8 mt-8 d-flex"
-                                               aria-label="Remove uploaded image"
-                                             >
-                                               <Icon
-                                                 icon="radix-icons:cross-2"
-                                                 className="text-xl text-danger-600"
-                                               ></Icon>
-                                             </button>
-                                             <img
-                                               id="uploaded-img__preview"
-                                               className="w-100 h-100 object-fit-cover"
-                                               src={formData.image_en}
-                                               alt="Uploaded"
-                                             />
-                                           </div>
-                                         ) : (
-                                           <label
-                                             className="upload-file h-160-px w-100 border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50 bg-hover-neutral-200 d-flex align-items-center flex-column justify-content-center gap-1"
-                                             htmlFor="upload-file-1"
-                                           >
-                                             <Icon
-                                               icon="solar:camera-outline"
-                                               className="text-xl text-secondary-light"
-                                             ></Icon>
-                                             <span className="fw-semibold text-secondary-light">
-                                               Upload
-                                             </span>
-                                             <input
-                                               id="upload-file-1"
-                                               type="file"
-                                               accept="image/*"
-                                               hidden
-                                               onChange={handleENFileChange}
-                                             />
-                                           </label>
-                                         )}
-                                       </div>
-                       </div>
-                       <div className="col-md-6">
-                       <label className="form-label fw-bold text-neutral-900">
-                           Arabic Thumbnail
-                         </label>
-                         <div className="upload-image-wrapper">
-                           {formData.image_ar ? (
-                             <div className="uploaded-img position-relative h-160-px w-100 border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50">
-                               <button
-                                 type="button"
-                                 onClick={handleARRemoveImage}
-                                 className="uploaded-img__remove position-absolute top-0 end-0 z-1 text-2xxl line-height-1 me-8 mt-8 d-flex"
-                                 aria-label="Remove uploaded image"
-                               >
-                                 <Icon
-                                   icon="radix-icons:cross-2"
-                                   className="text-xl text-danger-600"
-                                 ></Icon>
-                               </button>
-                               <img
-                                 id="uploaded-img__preview"
-                                 className="w-100 h-100 object-fit-cover"
-                                 src={formData.image_ar}
-                                 alt="Uploaded"
-                               />
-                             </div>
-                           ) : (
-                             <label
-                               className="upload-file h-160-px w-100 border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50 bg-hover-neutral-200 d-flex align-items-center flex-column justify-content-center gap-1"
-                               htmlFor="upload-file"
-                             >
-                               <Icon
-                                 icon="solar:camera-outline"
-                                 className="text-xl text-secondary-light"
-                               ></Icon>
-                               <span className="fw-semibold text-secondary-light">
-                                 Upload
-                               </span>
-                               <input
-                                 id="upload-file"
-                                 type="file"
-                                 hidden
-                                 accept="image/*"
-                                 onChange={handleARFileChange}
-                               />
-                             </label>
-                           )}
-                         
-                       </div>
-                       </div>
-                       </div>
+              <div className="col-md-6">
+                <label className="form-label fw-bold text-neutral-900">
+                  Arabic Thumbnail
+                </label>
+                <div className="upload-image-wrapper">
+                  {formData.image_ar ? (
+                    <div className="uploaded-img position-relative h-160-px w-100 border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50">
+                      <button
+                        type="button"
+                        onClick={handleARRemoveImage}
+                        className="uploaded-img__remove position-absolute top-0 end-0 z-1 text-2xxl line-height-1 me-8 mt-8 d-flex"
+                        aria-label="Remove uploaded image"
+                      >
+                        <Icon
+                          icon="radix-icons:cross-2"
+                          className="text-xl text-danger-600"
+                        ></Icon>
+                      </button>
+                      <img
+                        id="uploaded-img__preview"
+                        className="w-100 h-100 object-fit-cover"
+                        src={formData.image_ar}
+                        alt="Uploaded"
+                      />
+                    </div>
+                  ) : (
+                    <label
+                      className="upload-file h-160-px w-100 border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50 bg-hover-neutral-200 d-flex align-items-center flex-column justify-content-center gap-1"
+                      htmlFor="upload-file"
+                    >
+                      <Icon
+                        icon="solar:camera-outline"
+                        className="text-xl text-secondary-light"
+                      ></Icon>
+                      <span className="fw-semibold text-secondary-light">
+                        Upload
+                      </span>
+                      <input
+                        id="upload-file"
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={handleARFileChange}
+                      />
+                    </label>
+                  )}
+
+                </div>
+              </div>
+            </div>
             <div className="col-12">
               <button onClick={handleSubmit} className="btn btn-primary">
                 {editData ? "Update Category" : "Add Category"}
