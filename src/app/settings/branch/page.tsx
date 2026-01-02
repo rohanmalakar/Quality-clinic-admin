@@ -207,9 +207,11 @@ export default function BranchSettingsPage() {
                     <button
                         onClick={handleOpenAddModal}
                         className="btn btn-primary"
+                        style={{"fontSize":"15px"}}
                     >
-                        <i className="ri-add-line me-2"></i>
-                        Add New Branch
+                        <i 
+                        className="ri-add-line me-2"></i>
+                        Add Branch
                     </button>
                 </div>
                 <div className="card-body">

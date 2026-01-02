@@ -51,8 +51,8 @@ interface MonthlySalesData {
 
 const DoctorAppointmentStatistics = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [timeFilter, setTimeFilter] = useState('Monthly');
-  const [bookingData, setBookingData] = useState<BookingData[]>([]);
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [allBookingData, setAllBookingData] = useState<BookingData[]>([]);
   const [doctorStats, setDoctorStats] = useState<DoctorStats[]>([]);
   const [monthlySales, setMonthlySales] = useState<MonthlySalesData[]>([]);
   const [totalStats, setTotalStats] = useState({
@@ -63,13 +63,13 @@ const DoctorAppointmentStatistics = () => {
     cancelationRate: 0
   });
 
-  // Fetch and process booking data
+  // Fetch all booking data once
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
         const response = await get('/booking/doctor/metric');
-        processBookingData(response);
+        setAllBookingData(response);
       } catch (error) {
         console.error('Error fetching booking data:', error);
       } finally {
@@ -78,10 +78,52 @@ const DoctorAppointmentStatistics = () => {
     };
 
     fetchData();
-  }, [timeFilter]);
+  }, []);
+
+  // Filter data based on timeFilter
+  const filterDataByTime = (data: BookingData[]) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    switch (timeFilter) {
+      case 'today':
+        return data.filter(booking => {
+          const bookingDate = new Date(booking.booking_date);
+          const bookingDay = new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate());
+          return bookingDay.getTime() === today.getTime();
+        });
+
+      case 'week':
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return data.filter(booking => {
+          const bookingDate = new Date(booking.booking_date);
+          return bookingDate >= weekAgo && bookingDate <= now;
+        });
+
+      case 'month':
+        const monthAgo = new Date(today);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        return data.filter(booking => {
+          const bookingDate = new Date(booking.booking_date);
+          return bookingDate >= monthAgo && bookingDate <= now;
+        });
+
+      case 'all':
+      default:
+        return data;
+    }
+  };
+
+  // Process filtered data whenever timeFilter or allBookingData changes
+  useEffect(() => {
+    if (allBookingData.length > 0) {
+      const filteredData = filterDataByTime(allBookingData);
+      processBookingData(filteredData);
+    }
+  }, [timeFilter, allBookingData]);
 
   const processBookingData = (data: BookingData[]) => {
-    setBookingData(data);
 
     // Process doctor-wise statistics
     const doctorStatsMap: { [key: number]: DoctorStats } = {};
@@ -164,8 +206,8 @@ const DoctorAppointmentStatistics = () => {
       });
 
     // Calculate overall stats
-    const cancelationRate = totalAppointments > 0 
-      ? Math.round((canceledAppointments / totalAppointments) * 100) 
+    const cancelationRate = totalAppointments > 0
+      ? Math.round((canceledAppointments / totalAppointments) * 100)
       : 0;
 
     setDoctorStats(processedDoctorStats);
@@ -180,7 +222,7 @@ const DoctorAppointmentStatistics = () => {
   };
 
   // Chart options for monthly sales
-  const monthlySalesOptions:ApexOptions = useMemo(() => ({
+  const monthlySalesOptions: ApexOptions = useMemo(() => ({
     chart: {
       type: 'bar',
       stacked: false,
@@ -227,7 +269,7 @@ const DoctorAppointmentStatistics = () => {
   // Loading spinner
   if (isLoading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{height: '100vh'}}>
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
@@ -242,19 +284,40 @@ const DoctorAppointmentStatistics = () => {
           <div className="card">
             <div className="card-body">
               {/* Time Filter */}
-              <div className="d-flex justify-content-between align-items-center mb-4">
-                <h4 className="card-title">Doctor Appointment Statistics</h4>
-                <select 
-                  className="form-select form-select-sm w-auto"
-                  value={timeFilter}
-                  onChange={(e) => setTimeFilter(e.target.value)}
-                >
-                  <option value="Daily">Today</option>
-                  <option value="Weekly">Weekly</option>
-                  <option value="Monthly">Monthly</option>
-                  <option value="Yearly">Yearly</option>
-                </select>
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+                <h1 className="mb-0">Services Dashboard</h1>
+                <div className="btn-group flex-wrap" role="group">
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${timeFilter === 'today' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => setTimeFilter('today')}
+                  >
+                    Today
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${timeFilter === 'week' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => setTimeFilter('week')}
+                  >
+                    This Week
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${timeFilter === 'month' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => setTimeFilter('month')}
+                  >
+                    This Month
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${timeFilter === 'all' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => setTimeFilter('all')}
+                  >
+                    All Time
+                  </button>
+                </div>
               </div>
+
 
               {/* Overall Statistics Cards */}
               <div className="row g-3 mb-4">
@@ -291,7 +354,7 @@ const DoctorAppointmentStatistics = () => {
                   </div>
                 </div>
               </div>
-           
+
               {/* Monthly Sales Chart */}
               <div className="mb-4 rpw">
                 <div className="col-12">
@@ -311,56 +374,56 @@ const DoctorAppointmentStatistics = () => {
 
               {/* Doctor Performance Table */}
               <div className="table-responsive scroll-sm">
-  <table className="table bordered-table sm-table mb-0">
-    <thead>
-      <tr>
-        <th scope="col"></th>
-        <th scope="col">Doctor</th>
-        <th scope="col">Total Appointments</th>
-        <th scope="col">Completed</th>
-        <th scope="col">Canceled</th>
-        <th scope="col">Total Income</th>
-        <th scope="col">Conversion Rate</th>
-      </tr>
-    </thead>
-    <tbody>
-      {doctorStats.length > 0 ? (
-        doctorStats.map(doctor => (
-          <tr key={doctor.doctorId}>
-            <td>
-              <div className="d-flex align-items-center">
-                <img 
-                  src={doctor.photoUrl} 
-                  alt={doctor.doctorName} 
-                  className="rounded-circle me-2" 
-                  width="40" 
-                  height="40"
-                />
-            
+                <table className="table bordered-table sm-table mb-0">
+                  <thead>
+                    <tr>
+                      <th scope="col"></th>
+                      <th scope="col">Doctor</th>
+                      <th scope="col">Total Appointments</th>
+                      <th scope="col">Completed</th>
+                      <th scope="col">Canceled</th>
+                      <th scope="col">Total Income</th>
+                      <th scope="col">Conversion Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {doctorStats.length > 0 ? (
+                      doctorStats.map(doctor => (
+                        <tr key={doctor.doctorId}>
+                          <td>
+                            <div className="d-flex align-items-center">
+                              <img
+                                src={doctor.photoUrl}
+                                alt={doctor.doctorName}
+                                className="rounded-circle me-2"
+                                width="40"
+                                height="40"
+                              />
+
+                            </div>
+                          </td>
+                          <td> {doctor.doctorName}</td>
+                          <td>{doctor.totalAppointments}</td>
+                          <td>{doctor.completedAppointments}</td>
+                          <td>{doctor.canceledAppointments}</td>
+                          <td>${doctor.totalIncome.toLocaleString()}</td>
+                          <td>
+                            {doctor.totalAppointments > 0
+                              ? `${Math.round((doctor.completedAppointments / doctor.totalAppointments) * 100)}%`
+                              : '0%'}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="text-center py-2">
+                          No doctor statistics available.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
-            </td>
-            <td> {doctor.doctorName}</td>
-            <td>{doctor.totalAppointments}</td>
-            <td>{doctor.completedAppointments}</td>
-            <td>{doctor.canceledAppointments}</td>
-            <td>${doctor.totalIncome.toLocaleString()}</td>
-            <td>
-              {doctor.totalAppointments > 0 
-                ? `${Math.round((doctor.completedAppointments / doctor.totalAppointments) * 100)}%`
-                : '0%'}
-            </td>
-          </tr>
-        ))
-      ) : (
-        <tr>
-          <td colSpan={6} className="text-center py-2">
-            No doctor statistics available.
-          </td>
-        </tr>
-      )}
-    </tbody>
-  </table>
-</div>
             </div>
           </div>
         </div>

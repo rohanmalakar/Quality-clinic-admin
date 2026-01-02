@@ -184,16 +184,16 @@ const MasterLayout = ({ children }: { children: React.ReactNode }) => {
                                     icon='solar:home-smile-angle-outline'
                                     className='menu-icon'
                                 />
-                                <span>Reporting</span>
+                                <span>Dashboard</span>
                             </Link>
                             <ul className='sidebar-submenu'>
                                 <li>
                                     <Link
-                                        href='/dashboard/sales'
-                                        className={pathname === "/dashboard/sales" ? "active-page" : ""}
+                                        href='/dashboard/service'
+                                        className={pathname === "/dashboard/service" ? "active-page" : ""}
                                     >
                                         <i className='ri-circle-fill circle-icon text-primary-600 w-auto' />
-                                        Sales Statistics
+                                        Service Statistics
                                     </Link>
                                 </li>
                                 <li>

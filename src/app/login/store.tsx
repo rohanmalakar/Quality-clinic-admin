@@ -10,6 +10,7 @@ const initialState: UserState = {
   refresh_token: null,
   access_token: null,
   error: null,
+  theme: 'light', // light or dark
 };
 
 const userSlice = createSlice({
@@ -79,7 +80,10 @@ const userSlice = createSlice({
     },
     setLoading:(state) =>{
       state.status = 'LOADING'
-    }
+    },
+    setUserTheme: (state, action) => {
+      state.theme = action.payload; 
+    },
   },
 });
 
@@ -88,5 +92,5 @@ function isTokenExpired(token: string) {
   return (Math.floor((new Date()).getTime() / 1000)) >= expiry;
 }
 
-export const { login, logout, checkAuthenticated, setLoading } = userSlice.actions;
+export const { login, logout, checkAuthenticated, setLoading ,setUserTheme} = userSlice.actions;
 export default userSlice.reducer;

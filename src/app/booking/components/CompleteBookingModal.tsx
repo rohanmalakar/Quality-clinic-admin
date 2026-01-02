@@ -24,6 +24,7 @@ const CompleteModal: React.FC<CompleteModalProps> = ({
       left: 0,
       right: 0,
       bottom: 0,
+      color: "black",
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
       display: 'flex',
       justifyContent: 'center',
@@ -44,7 +45,7 @@ const CompleteModal: React.FC<CompleteModalProps> = ({
           alignItems: 'center',
           marginBottom: '16px'
         }}>
-          <h3 style={{ margin: 0, fontSize: '18px' }}>Complete Booking</h3>
+          <h3 style={{ margin: 0, color: "black", fontSize: '18px' }}>Complete Booking</h3>
           <button
             onClick={onClose}
             style={{

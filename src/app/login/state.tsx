@@ -18,6 +18,7 @@ interface UserState {
     refresh_token: string | null;
     access_token: string | null;
     error: string | null; // For storing error messages
+    theme: 'light' | 'dark';
 }
 
 
@@ -31,5 +32,6 @@ const initialState: UserState = {
     refresh_token: null,
     access_token: null,
     error: null,
+    theme: 'light',
 };
 

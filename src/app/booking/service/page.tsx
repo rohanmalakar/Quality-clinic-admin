@@ -5,6 +5,7 @@ import { isAfter, isBefore, parseISO, format } from 'date-fns';
 import { get, post } from '@/utils/network';
 import CancelModal from '../components/CancelModal';
 import CompleteModal from '../components/CompleteBookingModal';
+import { Scale } from 'lucide-react';
 
 interface ServiceBooking {
   id: string;
@@ -212,7 +213,7 @@ const ServiceBookingsPage: React.FC = () => {
     return (
       <div style={{ overflowX: 'auto', width: '100%' }}>
         <div style={{ border: '1px solid #e2e8f0', borderRadius: '4px' }}>
-          <table style={{ minWidth: '100%', width: '100%', borderCollapse: 'collapse' }} className="table bordered-table sm-table rounded-5px mb-0">
+          <table style={{ minWidth: '100%', width: '100%', borderCollapse: 'collapse' }} className="table px-5 table-hover bordered-table sm-table rounded-5px mb-0">
             <thead>
               <tr className="border-bottom">
                 {[
@@ -275,8 +276,11 @@ const ServiceBookingsPage: React.FC = () => {
 
                 return (
                   <tr
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                    style={{ transition: 'transform 0.2s ease-in-out', cursor: 'pointer' }}
                     key={booking.id}
-                    className="align-middle border-bottom"
+                    className="align-middle scale-105 border-bottom"
                   >
                     {/* Order ID */}
                     <td style={{ padding: "12px" }} className="fw-medium">

@@ -1,4 +1,6 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
+
 
 interface CancelModalProps {
   show: boolean;
@@ -17,6 +19,8 @@ const CancelModal: React.FC<CancelModalProps> = ({
 }) => {
   if (!show) return null;
 
+  const theme= useSelector((state: any) => state.user.theme);
+
   return (
     <div style={{
       position: 'fixed',
@@ -24,6 +28,7 @@ const CancelModal: React.FC<CancelModalProps> = ({
       left: 0,
       right: 0,
       bottom: 0,
+      color: "black",
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
       display: 'flex',
       justifyContent: 'center',
@@ -31,6 +36,7 @@ const CancelModal: React.FC<CancelModalProps> = ({
       zIndex: 1000
     }}>
       <div style={{
+        color: "black",
         backgroundColor: 'white',
         borderRadius: '4px',
         padding: '24px',
@@ -44,7 +50,7 @@ const CancelModal: React.FC<CancelModalProps> = ({
           alignItems: 'center',
           marginBottom: '16px'
         }}>
-          <h3 style={{ margin: 0, fontSize: '18px' }}>Cancel Booking</h3>
+          <h3 style={{ margin: 0, color: "black", fontSize: '18px' }}>Cancel Booking</h3>
           <button
             onClick={onClose}
             style={{

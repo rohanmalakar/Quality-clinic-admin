@@ -184,7 +184,7 @@ const DoctorBookingsPage: React.FC = () => {
     return (
       <div style={{ width: "100%", overflowX: "auto" }}>
         <div className="border rounded">
-          <table style={{ minWidth: '100%', width: '100%', borderCollapse: 'collapse' }} className="table bordered-table sm-table mb-0">
+          <table style={{ minWidth: '100%', width: '100%', borderCollapse: 'collapse' }} className="table table-hover  bordered-table sm-table mb-0">
             {/* ================= HEADER ================= */}
             <thead>
               <tr className="border-bottom">
@@ -245,7 +245,13 @@ const DoctorBookingsPage: React.FC = () => {
                     : "0.00";
 
                 return (
-                  <tr key={booking.id} className="align-middle border-bottom">
+                  <tr 
+                    key={booking.id} 
+                    className="align-middle border-bottom"
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                    style={{ transition: 'transform 0.2s ease-in-out', cursor: 'pointer' }}
+                    >
                     {/* Order ID */}
                     <td className="fw-medium" style={{ padding: "12px" }}>
                       {booking.id}

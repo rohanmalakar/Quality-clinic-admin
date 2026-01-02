@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { get } from '@/utils/network';
+import { del, get } from '@/utils/network';
 import Image from 'next/image';
 import { Icon } from '@iconify/react/dist/iconify.js';
 import Modal from 'react-bootstrap/Modal';
@@ -48,13 +48,24 @@ const CategoryPage = () => {
   const handleEditCategory = async (categoryId: number) => {
 
     const categoryToEdit = categories.find((categories) => categories.id === categoryId);
-    console.log(categoryToEdit)
+  
     if (!categoryToEdit) {
       console.error('Service not found in state!');
       return;
     }
     setSelectedCategory(categoryToEdit);
     setShowEditCategoryModel(true);
+  }
+
+  const handleDeleteCategory = async (categoryId: number) => {
+      const confirmed = window.confirm("Are you sure you want to delete this category?");
+      if (!confirmed) return;
+      try {
+          await del(`/service/category/${categoryId}`);
+          setCategories((state) => state.filter((category) => category.id !== categoryId));
+      } catch (err: any) {
+          alert("Failed to delete category: " + err.message);
+      } 
   }
 
   return (
@@ -130,7 +141,7 @@ const CategoryPage = () => {
         ) : (
           <div className="row g-4">
             {categories.map((categories: any) => (
-              <CategoryCard key={categories.id} category={categories} onEdit={() => handleEditCategory(categories.id)} />
+              <CategoryCard key={categories.id} onDelete={() => handleDeleteCategory(categories.id)} category={categories} onEdit={() => handleEditCategory(categories.id)} />
             ))}
           </div>
         )}
@@ -141,7 +152,7 @@ const CategoryPage = () => {
 };
 
 // Category Card Component
-const CategoryCard = ({ category, onEdit }: { category: any; onEdit: () => void }) => {
+const CategoryCard = ({ category, onEdit , onDelete }: { category: any; onEdit: () => void; onDelete: () => void }) => {
 
   return (
     <div className="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
@@ -183,18 +194,30 @@ const CategoryCard = ({ category, onEdit }: { category: any; onEdit: () => void 
           </div>
 
           {/* Edit Button */}
-          <Link
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onEdit();
-            }}
-            className="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2 w-100"
-            aria-label={`Edit ${category.name_en}`}
-          >
-            <Icon icon="mdi:pencil" className="fs-6" />
-            Edit Category
-          </Link>
+          <div className='d-flex gap-2'>
+            <button
+              onClick={() => {
+                onEdit();
+              }}
+              className="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2 w-100"
+              aria-label={`Edit ${category.name_en}`}
+            >
+              <Icon icon="mdi:pencil" className="fs-6" />
+              Edit 
+            </button>
+
+            {/* Delete Button */}
+            <button
+              onClick={() => {
+                onDelete();
+              }}
+              className="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2 w-100"
+              aria-label={`Edit ${category.name_en}`}
+            >
+              <Icon icon="mdi:delete" className="fs-6" />
+              Delete 
+            </button>
+          </div>
         </div>
       </div>
     </div>

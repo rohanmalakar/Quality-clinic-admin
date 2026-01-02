@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import {useDispatch} from 'react-redux';
+import {setUserTheme} from "@/app/login/store";
 
 const ThemeToggleButton = () => {
     // 1. State for the current theme, initialized to null before hydration
     const [theme, setTheme] = useState<string>("light");
+    const dispatch = useDispatch();
 
     // 2. Function to update the theme on the HTML element
     const updateThemeOnHtmlEl = (theme: string) => {
@@ -26,6 +29,7 @@ const ThemeToggleButton = () => {
     const handleThemeToggle = () => {
         const newTheme = theme === "dark" ? "light" : "dark";
         setTheme(newTheme);
+        dispatch(setUserTheme(newTheme));
 
         if (typeof window !== "undefined") {
             localStorage.setItem("theme", newTheme);
