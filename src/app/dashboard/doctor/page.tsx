@@ -285,7 +285,11 @@ const DoctorAppointmentStatistics = () => {
             <div className="card-body">
               {/* Time Filter */}
               <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
-                <h1 className="mb-0">Services Dashboard</h1>
+                <p
+                  style={{ "backgroundColor": "#EC4899", "color": "white", "padding": "5px 10px", "marginLeft": "15px", "width": "fit-content" }}
+                  className=" rounded-3 border-2 font-semibold fs-3">
+                  Doctor booking Statistics
+                </p>
                 <div className="btn-group flex-wrap" role="group">
                   <button
                     type="button"

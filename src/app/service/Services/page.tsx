@@ -78,10 +78,12 @@ const ServicePage = () => {
     <div className="card h-100 p-0 radius-12">
       <div className="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
         <div className="d-flex align-items-center flex-wrap gap-3">
-          <h1 className="text-xl fw-semibold mb-0">Available Services</h1>
-          <span className="badge bg-primary-600 text-white px-12 py-6 radius-4 fw-medium">
-            {services.length} {services.length === 1 ? 'Service' : 'Services'}
-          </span>
+          <p
+            style={{ "backgroundColor": "#EC4899", "color": "white", "padding": "5px 10px", "marginLeft": "15px", "width": "fit-content" }}
+            className=" rounded-3 border-2 font-semibold fs-3"
+          >
+            Services
+          </p>
         </div>
         <button
           onClick={() => setShowCreateServiceModel(true)}

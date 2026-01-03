@@ -75,10 +75,10 @@ const BookingDashboard: React.FC = () => {
       setLoading(true);
       const response = await await get('/booking/service/metric');
       console.log(response);
-    
-        setBookingsData(response);
-        setError(null);
-     
+
+      setBookingsData(response);
+      setError(null);
+
     } catch (err) {
       setError('Error fetching data: ' + (err instanceof Error ? err.message : 'Unknown error'));
     } finally {
@@ -97,17 +97,17 @@ const BookingDashboard: React.FC = () => {
       switch (timeFilter) {
         case 'today':
           return bookingDate.getTime() === today.getTime();
-        
+
         case 'week':
           const weekAgo = new Date(today);
           weekAgo.setDate(today.getDate() - 7);
           return bookingDate >= weekAgo && bookingDate <= today;
-        
+
         case 'month':
           const monthAgo = new Date(today);
           monthAgo.setMonth(today.getMonth() - 1);
           return bookingDate >= monthAgo && bookingDate <= today;
-        
+
         case 'all':
         default:
           return true;
@@ -119,11 +119,11 @@ const BookingDashboard: React.FC = () => {
     if (!getFilteredBookings.length) {
       return { total: 0, completed: 0, scheduled: 0, canceled: 0, revenue: 0 };
     }
-    
+
     const completed = getFilteredBookings.filter(b => b.booking_status === 'COMPLETED').length;
     const scheduled = getFilteredBookings.filter(b => b.booking_status === 'SCHEDULED').length;
     const canceled = getFilteredBookings.filter(b => b.booking_status === 'CANCELED').length;
-    
+
     const revenue = getFilteredBookings
       .filter(b => b.service_discounted_price && b.booking_status === 'COMPLETED')
       .reduce((sum, b) => sum + parseFloat(b.service_discounted_price!), 0);
@@ -139,7 +139,7 @@ const BookingDashboard: React.FC = () => {
 
   const branchData = useMemo<BranchChartData[]>(() => {
     if (!getFilteredBookings.length) return [];
-    
+
     const branches: Record<string, number> = {};
     getFilteredBookings.forEach(b => {
       branches[b.branch_name_en] = (branches[b.branch_name_en] || 0) + 1;
@@ -149,13 +149,13 @@ const BookingDashboard: React.FC = () => {
 
   const dailyBookingsData = useMemo<DailyBookingData[]>(() => {
     if (!getFilteredBookings.length) return [];
-    
+
     const dailyCount: Record<string, number> = {};
     getFilteredBookings.forEach(b => {
       const date = b.booking_date;
       dailyCount[date] = (dailyCount[date] || 0) + 1;
     });
-    
+
     return Object.entries(dailyCount)
       .map(([date, bookings]) => ({ date, bookings }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -163,13 +163,13 @@ const BookingDashboard: React.FC = () => {
 
   const serviceTypeData = useMemo(() => {
     if (!getFilteredBookings.length) return [];
-    
+
     const services: Record<string, number> = {};
     getFilteredBookings.forEach(b => {
       const serviceName = b.service_category_type || 'Unknown';
       services[serviceName] = (services[serviceName] || 0) + 1;
     });
-    
+
     return Object.entries(services).map(([name, value]) => ({ name, value }));
   }, [getFilteredBookings]);
 
@@ -210,7 +210,11 @@ const BookingDashboard: React.FC = () => {
     <div className="container-fluid py-4" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
       <div className="container">
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
-          <h1 className="mb-0">Services Dashboard</h1>
+          <p
+            style={{ "backgroundColor": "#EC4899", "color": "white", "padding": "5px 10px", "marginLeft": "15px", "width": "fit-content" }}
+            className=" rounded-3 border-2 font-semibold fs-3">
+            Service Booking Statistics
+          </p>
           <div className="btn-group flex-wrap" role="group">
             <button
               type="button"
@@ -360,12 +364,12 @@ const BookingDashboard: React.FC = () => {
                 {serviceTypeData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
-                      <Pie 
-                        data={serviceTypeData} 
-                        dataKey="value" 
-                        nameKey="name" 
-                        cx="50%" 
-                        cy="50%" 
+                      <Pie
+                        data={serviceTypeData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
                         outerRadius={80}
                         label
                       >
