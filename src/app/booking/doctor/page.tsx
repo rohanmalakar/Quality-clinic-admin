@@ -119,7 +119,7 @@ const DoctorBookingsPage: React.FC = () => {
     setCompleteError(null);
     setShowCompleteModal(true);
   }
-  
+
 
   const handleCloseCancelModal = () => {
     setShowCancelModal(false);
@@ -254,6 +254,8 @@ const DoctorBookingsPage: React.FC = () => {
                     className={
                       ["Final Total"].includes(header)
                         ? "text-end fw-semibold small"
+                        : ["View Details"].includes(header)
+                        ? "fw-semibold small  text-center"
                         : "fw-semibold small"
                     }
                     style={{
@@ -280,11 +282,11 @@ const DoctorBookingsPage: React.FC = () => {
             <tbody>
               {bookings.map((booking) => {
                 return (
-                  <tr 
-                    key={booking.id} 
+                  <tr
+                    key={booking.id}
                     className="align-middle border-bottom"
                     style={{ transition: 'transform 0.2s ease-in-out', cursor: 'pointer' }}
-                    >
+                  >
                     {/* Order ID */}
                     <td className="fw-medium small" style={{ padding: "12px 16px" }}>
                       {booking.id}
@@ -446,44 +448,44 @@ const DoctorBookingsPage: React.FC = () => {
 
   return (
     <div className="w-full border rounded p-4">
-      <h5 className="mb-4 fw-semibold">
+      <p
+        style={{ "backgroundColor": "#EC4899", "color": "white", "padding": "5px 10px", "marginLeft": "15px"  ,"width":"fit-content" }}
+        className=" rounded-3 border-2 font-semibold fs-3">
         Doctor Bookings
-      </h5>
+      </p>
 
-      <ul className="nav nav-tabs mb-4" role="tablist">
+      <ul 
+      style={{"width":"fit-content", "padding":"5px", "marginLeft":"15px"}}
+      className="nav nav-pills  bg-primary-subtle px-1  rounded-4 gap-2 mb-4" role="tablist">
         <li className="nav-item" role="presentation">
           <button
             onClick={() => setMainTab("completed")}
-            className={`nav-link d-flex align-items-center gap-2 ${
-              mainTab === "completed" ? "active" : ""
-            }`}
+            className={`nav-link d-flex align-items-center justify-content-center gap-2 py-1 rounded-4 ${mainTab === "completed" ? "active" : "text-dark bg-light"
+              }`}
             type="button"
             role="tab"
             aria-selected={mainTab === "completed"}
           >
             <span className="fw-semibold">Completed</span>
-            <span className={`badge rounded-pill ${
-              mainTab === "completed" ? "bg-primary text-white" : "bg-secondary"
-            }`}>
+            <span className={`badge rounded-pill ${mainTab === "completed" ? "bg-white text-primary" : "bg-light text-dark"
+              }`}>
               {completedBookings.length}
             </span>
           </button>
         </li>
 
-        <li className="nav-item" role="presentation">
+        <li className="nav-item " role="presentation">
           <button
             onClick={() => setMainTab("upcoming")}
-            className={`nav-link d-flex align-items-center gap-2 ${
-              mainTab === "upcoming" ? "active" : ""
-            }`}
+            className={`nav-link d-flex align-items-center justify-content-center gap-2 py-1 rounded-4 ${mainTab === "upcoming" ? "active" : "text-dark bg-light"
+              }`}
             type="button"
             role="tab"
             aria-selected={mainTab === "upcoming"}
           >
             <span className="fw-semibold">Upcoming</span>
-            <span className={`badge rounded-pill ${
-              mainTab === "upcoming" ? "bg-primary text-white" : "bg-secondary"
-            }`}>
+            <span className={`badge rounded-pill ${mainTab === "upcoming" ? "bg-white text-primary" : "bg-light text-dark"
+              }`}>
               {upcomingBookings.length}
             </span>
           </button>
@@ -492,17 +494,15 @@ const DoctorBookingsPage: React.FC = () => {
         <li className="nav-item" role="presentation">
           <button
             onClick={() => setMainTab("canceled")}
-            className={`nav-link d-flex align-items-center gap-2 ${
-              mainTab === "canceled" ? "active" : ""
-            }`}
+            className={`nav-link d-flex align-items-center justify-content-center gap-2 py-1 rounded-4 ${mainTab === "canceled" ? "active" : "text-dark bg-light"
+              }`}
             type="button"
             role="tab"
             aria-selected={mainTab === "canceled"}
           >
             <span className="fw-semibold">Canceled</span>
-            <span className={`badge rounded-pill ${
-              mainTab === "canceled" ? "bg-primary text-white" : "bg-secondary"
-            }`}>
+            <span className={`badge rounded-pill ${mainTab === "canceled" ? "bg-white text-primary" : "bg-light text-dark"
+              }`}>
               {canceledBookings.length}
             </span>
           </button>
@@ -510,11 +510,10 @@ const DoctorBookingsPage: React.FC = () => {
       </ul>
 
       {/* Search and Filter Section */}
-      <div className="mb-4 p-3 bg-body-secondary rounded">
+      <div className="mb-4 p-3  rounded">
         <div className="row g-3">
           {/* Search Input */}
           <div className="col-md-6 col-lg-4">
-            <label className="form-label fw-semibold small">Search</label>
             <input
               type="text"
               className="form-control"
@@ -526,7 +525,6 @@ const DoctorBookingsPage: React.FC = () => {
 
           {/* Branch Filter */}
           <div className="col-md-6 col-lg-3">
-            <label className="form-label fw-semibold small">Branch</label>
             <select
               className="form-select"
               value={selectedBranch}
@@ -541,7 +539,6 @@ const DoctorBookingsPage: React.FC = () => {
 
           {/* Date From */}
           <div className="col-md-6 col-lg-2">
-            <label className="form-label fw-semibold small">Date From</label>
             <input
               type="date"
               className="form-control"
@@ -552,7 +549,6 @@ const DoctorBookingsPage: React.FC = () => {
 
           {/* Date To */}
           <div className="col-md-6 col-lg-2">
-            <label className="form-label fw-semibold small">Date To</label>
             <input
               type="date"
               className="form-control"
@@ -582,7 +578,7 @@ const DoctorBookingsPage: React.FC = () => {
         onClose={handleCloseCancelModal}
         onConfirm={handleCancelBooking}
       />
-      
+
       <CompleteModal
         show={showCompleteModal}
         isCompleting={isCompleting}

@@ -243,10 +243,10 @@ const ServiceBookingsPage: React.FC = () => {
                     scope="col"
                     className={
                       header === "Final Total"
-                        ? "text-end fw-semibold"
+                        ? "text-end  fw-bold fs-5"
                         : header === "View Details"
-                        ? "text-center fw-semibold"
-                        : "fw-semibold"
+                        ? "text-center fw-bold fs-5"
+                        : "fw-bold fs-5"
                     }
                     style={{
                       fontSize: "13px",
@@ -279,35 +279,37 @@ const ServiceBookingsPage: React.FC = () => {
                     className="align-middle border-bottom"
                   >
                     {/* Order ID */}
-                    <td style={{ padding: "12px" }} className="fw-medium">
+                    <td style={{ padding: "12px" }} className="fw-medium fs-6">
                       {booking.id}
                     </td>
 
                     {/* Customer - Name Only */}
-                    <td style={{ padding: "12px" }} className="fw-semibold">
+                    <td style={{ padding: "12px" }} className="fw-medium fs-6">
                       {booking.user_full_name}
                     </td>
 
                     {/* Service */}
-                    <td style={{ padding: "12px" }} className="fw-medium">
+                    <td style={{ padding: "12px", WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} className="fw-medium fs-6">
                       {booking.service_name_en}
                     </td>
 
                     {/* Date */}
                     <td
                       style={{ padding: "12px", whiteSpace: "nowrap" }}
+                      className="fw-medium fs-6"
                     >
                       {formatDate(booking.booking_date)}
                     </td>
 
                     {/* Branch */}
-                    <td style={{ padding: "12px" }}>
+                    <td style={{ padding: "12px" }}
+                      className="fw-medium fs-6">
                       {booking.branch_name_en}
                     </td>
 
                     {/* Final Total */}
                     <td
-                      className="text-end fw-semibold"
+                      className="text-end fw-medium fs-6"
                       style={{ padding: "12px" }}
                     >
                       ﷼{booking.final_total || "0.00"}
@@ -315,7 +317,7 @@ const ServiceBookingsPage: React.FC = () => {
 
                     {/* View Details Button */}
                     <td
-                      className="text-center"
+                      className="text-center fw-medium fs-6"
                       style={{ padding: "12px" }}
                     >
                       <button
@@ -428,65 +430,72 @@ const ServiceBookingsPage: React.FC = () => {
 
   return (
     <div className="w-full border p-6  radius-8">
-      <h4 className="mb-4  p-2 font-semibold">
+      <p
+        style={{ "backgroundColor": "#EC4899", "color": "white", "padding": "5px 10px", "marginLeft": "15px"  ,"width":"fit-content" }}
+        className=" rounded-3 border-2 font-semibold fs-3">
         Service Bookings
-      </h4>
+      </p>
 
-      <div className="mb-4 border-bottom">
-        <div className="d-flex py-3 gap-2 flex-wrap">
+      <ul 
+        style={{"width":"fit-content", "padding":"5px", "marginLeft":"15px"}}
+        className="nav nav-pills  bg-primary-subtle px-1  rounded-4 gap-2 mb-4" role="tablist">
+        <li className="nav-item" role="presentation">
           <button
             onClick={() => setMainTab("completed")}
-            className={`btn btn-sm px-6 rounded-4 py-4 fw-semibold d-flex align-items-center gap-2  ${mainTab === "completed"
-              ? "text-primary border-3 border-primary"
-              : "text-secondary"
+            className={`nav-link d-flex align-items-center justify-content-center gap-2 py-1 rounded-4 ${mainTab === "completed" ? "active" : "text-dark bg-light"
               }`}
-            style={{ background: "transparent", borderRadius: 0 }}
+            type="button"
+            role="tab"
+            aria-selected={mainTab === "completed"}
           >
-            Completed
-            <span className={`badge rounded-pill ${mainTab === "completed" ? "bg-primary text-white" : "bg-secondary-subtle text-secondary"
+            <span className="fw-semibold">Completed</span>
+            <span className={`badge rounded-pill ${mainTab === "completed" ? "bg-white text-primary" : "bg-light text-dark"
               }`}>
               {completedBookings.length}
             </span>
           </button>
+        </li>
 
+        <li className="nav-item " role="presentation">
           <button
             onClick={() => setMainTab("upcoming")}
-            className={`btn btn-sm px-6 rounded-4 py-4 fw-semibold d-flex align-items-center gap-2  ${mainTab === "upcoming"
-              ? "text-primary  border-3 border-primary"
-              : "text-secondary"
+            className={`nav-link d-flex align-items-center justify-content-center gap-2 py-1 rounded-4 ${mainTab === "upcoming" ? "active" : "text-dark bg-light"
               }`}
-            style={{ background: "transparent", borderRadius: 0 }}
+            type="button"
+            role="tab"
+            aria-selected={mainTab === "upcoming"}
           >
-            Upcoming
-            <span className={`badge rounded-pill ${mainTab === "upcoming" ? "bg-primary text-white" : "bg-secondary-subtle text-secondary"
+            <span className="fw-semibold">Upcoming</span>
+            <span className={`badge rounded-pill ${mainTab === "upcoming" ? "bg-white text-primary" : "bg-light text-dark"
               }`}>
               {upcomingBookings.length}
             </span>
           </button>
+        </li>
 
+        <li className="nav-item" role="presentation">
           <button
             onClick={() => setMainTab("canceled")}
-            className={`btn btn-sm px-6 rounded-4 py-4 fw-semibold d-flex align-items-center gap-2  ${mainTab === "canceled"
-              ? "text-primary border-3 border-primary"
-              : "text-secondary"
+            className={`nav-link d-flex align-items-center justify-content-center gap-2 py-1 rounded-4 ${mainTab === "canceled" ? "active" : "text-dark bg-light"
               }`}
-            style={{ background: "transparent", borderRadius: 0 }}
+            type="button"
+            role="tab"
+            aria-selected={mainTab === "canceled"}
           >
-            Canceled
-            <span className={`badge rounded-pill ${mainTab === "canceled" ? "bg-primary text-white" : "bg-secondary-subtle text-secondary"
+            <span className="fw-semibold">Canceled</span>
+            <span className={`badge rounded-pill ${mainTab === "canceled" ? "bg-white text-primary" : "bg-light text-dark"
               }`}>
               {canceledBookings.length}
             </span>
           </button>
-        </div>
-      </div>
+        </li>
+      </ul>
 
       {/* Search and Filter Section */}
       <div className="mb-4 p-3" >
         <div className="row g-3">
           {/* Search Input */}
           <div className="col-md-6 col-lg-4">
-            <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Search</label>
             <input
               type="text"
               className="form-control"
@@ -499,7 +508,6 @@ const ServiceBookingsPage: React.FC = () => {
 
           {/* Branch Filter */}
           <div className="col-md-6 col-lg-3">
-            <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Branch</label>
             <select
               className="form-select"
               value={selectedBranch}
@@ -515,7 +523,6 @@ const ServiceBookingsPage: React.FC = () => {
 
           {/* Date From */}
           <div className="col-md-6 col-lg-2">
-            <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Date From</label>
             <input
               type="date"
               className="form-control"
@@ -527,7 +534,6 @@ const ServiceBookingsPage: React.FC = () => {
 
           {/* Date To */}
           <div className="col-md-6 col-lg-2">
-            <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Date To</label>
             <input
               type="date"
               className="form-control"
