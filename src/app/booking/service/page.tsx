@@ -5,6 +5,7 @@ import { isAfter, isBefore, parseISO, format } from 'date-fns';
 import { get, post } from '@/utils/network';
 import CancelModal from '../components/CancelModal';
 import CompleteModal from '../components/CompleteBookingModal';
+import ServiceDetailsModal from './serviceDetailsModal';
 import { Scale } from 'lucide-react';
 
 interface ServiceBooking {
@@ -48,6 +49,8 @@ const ServiceBookingsPage: React.FC = () => {
   const [selectedDateFrom, setSelectedDateFrom] = useState<string>('');
   const [selectedDateTo, setSelectedDateTo] = useState<string>('');
   const [branches, setBranches] = useState<Array<{ id: number; name: string }>>([]);
+  const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
+  const [selectedBooking, setSelectedBooking] = useState<ServiceBooking | null>(null);
 
   const processBookings = (bookings: ServiceBooking[]): ServiceBooking[] => {
     return bookings.map(booking => {
@@ -122,6 +125,16 @@ const ServiceBookingsPage: React.FC = () => {
     setShowCompleteModal(false);
     setCompleteBookingId(null);
     setCompleteError(null);
+  };
+
+  const handleOpenDetailsModal = (booking: ServiceBooking) => {
+    setSelectedBooking(booking);
+    setShowDetailsModal(true);
+  };
+
+  const handleCloseDetailsModal = () => {
+    setShowDetailsModal(false);
+    setSelectedBooking(null);
   };
 
   const handleCancelBooking = async () => {
@@ -222,22 +235,17 @@ const ServiceBookingsPage: React.FC = () => {
                   "Service",
                   "Date",
                   "Branch",
-                  "Total Amount",
-                  "Discount",
-                  "VAT",
                   "Final Total",
+                  "View Details",
                 ].map((header) => (
                   <th
                     key={header}
                     scope="col"
                     className={
-                      [
-                        "Total Amount",
-                        "Discount",
-                        "VAT",
-                        "Final Total",
-                      ].includes(header)
+                      header === "Final Total"
                         ? "text-end fw-semibold"
+                        : header === "View Details"
+                        ? "text-center fw-semibold"
                         : "fw-semibold"
                     }
                     style={{
@@ -265,41 +273,19 @@ const ServiceBookingsPage: React.FC = () => {
             </thead>
             <tbody>
               {bookings.map((booking) => {
-                const discountAmount =
-                  booking.service_actual_price &&
-                    booking.service_discounted_price
-                    ? (
-                      parseFloat(booking.service_actual_price) -
-                      parseFloat(booking.service_discounted_price)
-                    ).toFixed(2)
-                    : "0.00";
-
                 return (
                   <tr
-                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                    style={{ transition: 'transform 0.2s ease-in-out', cursor: 'pointer' }}
                     key={booking.id}
-                    className="align-middle scale-105 border-bottom"
+                    className="align-middle border-bottom"
                   >
                     {/* Order ID */}
                     <td style={{ padding: "12px" }} className="fw-medium">
                       {booking.id}
                     </td>
 
-                    {/* Customer */}
-                    <td style={{ padding: "12px" }}>
-                      <div style={{ lineHeight: "1.3" }}>
-                        <div className="fw-semibold">
-                          {booking.user_full_name}
-                        </div>
-                        <div className="small ">
-                          {booking.user_email}
-                        </div>
-                        <div className="small">
-                          {booking.user_phone_number}
-                        </div>
-                      </div>
+                    {/* Customer - Name Only */}
+                    <td style={{ padding: "12px" }} className="fw-semibold">
+                      {booking.user_full_name}
                     </td>
 
                     {/* Service */}
@@ -319,38 +305,26 @@ const ServiceBookingsPage: React.FC = () => {
                       {booking.branch_name_en}
                     </td>
 
-                    {/* Total Amount */}
-                    <td
-                      className="text-end fw-medium"
-                      style={{ padding: "12px" }}
-                    >
-                      ﷼{booking.service_actual_price || "0.00"}
-                    </td>
-
-                    {/* Discount */}
-                    <td
-                      className="text-end "
-                      style={{ padding: "12px" }}
-                    >
-                      ﷼{discountAmount}
-                    </td>
-
-                    {/* VAT */}
-                    <td className="text-end" style={{ padding: "12px" }}>
-                      <div style={{ fontSize: "13px" }}>
-                        {booking.vat_percentage || 15}%
-                      </div>
-                      <div className="small">
-                        (﷼{booking.vat_amount || "0.00"})
-                      </div>
-                    </td>
-
                     {/* Final Total */}
                     <td
                       className="text-end fw-semibold"
                       style={{ padding: "12px" }}
                     >
                       ﷼{booking.final_total || "0.00"}
+                    </td>
+
+                    {/* View Details Button */}
+                    <td
+                      className="text-center"
+                      style={{ padding: "12px" }}
+                    >
+                      <button
+                        onClick={() => handleOpenDetailsModal(booking)}
+                        className="btn btn-outline-primary btn-sm px-3"
+                      >
+                        <i className="ri-eye-line me-1"></i>
+                        View
+                      </button>
                     </td>
 
                     {/* Actions */}
@@ -516,7 +490,7 @@ const ServiceBookingsPage: React.FC = () => {
             <input
               type="text"
               className="form-control"
-              placeholder="Search by name, email, phone, or service..."
+              placeholder="Search by customer name or service..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{ fontSize: '14px' }}
@@ -619,6 +593,11 @@ const ServiceBookingsPage: React.FC = () => {
         error={completeError}
         onClose={handleCloseCompleteModal}
         onConfirm={handleCompleteBooking}
+      />
+      <ServiceDetailsModal
+        show={showDetailsModal}
+        booking={selectedBooking}
+        onClose={handleCloseDetailsModal}
       />
     </div>
   );

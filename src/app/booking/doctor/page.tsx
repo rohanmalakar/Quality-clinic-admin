@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { isAfter, isBefore, parseISO, format } from 'date-fns';
 import { get, post } from '@/utils/network';
 import CancelModal from '../components/CancelModal';
+import DoctorDetailsModal from './appoinmentDetailsModal';
+import CompleteModal from '../components/CompleteBookingModal';
 
 interface DoctorBooking {
   id: string;
@@ -37,13 +39,20 @@ const DoctorBookingsPage: React.FC = () => {
   const [mainTab, setMainTab] = useState<'completed' | 'upcoming' | 'canceled'>('completed');
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
+  const [isCompleting, setIsCompleting] = useState<boolean>(false);
+  const [completeBookingId, setCompleteBookingId] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [completeError, setCompleteError] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
+  const [showCompleteModal, setShowCompleteModal] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [selectedDateFrom, setSelectedDateFrom] = useState<string>('');
   const [selectedDateTo, setSelectedDateTo] = useState<string>('');
   const [branches, setBranches] = useState<Array<{ id: number; name: string }>>([]);
+  const [selectedBooking, setSelectedBooking] = useState<DoctorBooking | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
+
 
 
   const processBookings = (bookings: DoctorBooking[]): DoctorBooking[] => {
@@ -105,6 +114,12 @@ const DoctorBookingsPage: React.FC = () => {
     setCancelError(null);
     setShowCancelModal(true);
   };
+  const handleOpenCompleteModal = (bookingId: string) => {
+    setCompleteBookingId(bookingId);
+    setCompleteError(null);
+    setShowCompleteModal(true);
+  }
+  
 
   const handleCloseCancelModal = () => {
     setShowCancelModal(false);
@@ -112,6 +127,32 @@ const DoctorBookingsPage: React.FC = () => {
     setCancelError(null);
   };
 
+  const handleCloseCompleteModal = () => {
+    setShowCompleteModal(false);
+    setCompleteBookingId(null);
+    setCompleteError(null);
+  };
+
+  const handleCompleteBooking = async () => {
+    if (!completeBookingId) return;
+
+    try {
+      setIsCompleting(true);
+      setCompleteError(null);
+
+      await post('/booking/doctor/complete', {
+        booking_id: completeBookingId,
+      });
+
+      handleCloseCompleteModal();
+      fetchBookings();
+    } catch (error) {
+      console.error("Error completing booking:", error);
+      setCompleteError((error as Error).message || 'Failed to complete booking');
+    } finally {
+      setIsCompleting(false);
+    }
+  };
   const handleCancelBooking = async () => {
     if (!cancelBookingId) return;
 
@@ -132,6 +173,16 @@ const DoctorBookingsPage: React.FC = () => {
     } finally {
       setIsCancelling(false);
     }
+  };
+
+  const handleOpenDetailsModal = (booking: DoctorBooking) => {
+    setSelectedBooking(booking);
+    setShowDetailsModal(true);
+  };
+
+  const handleCloseDetailsModal = () => {
+    setShowDetailsModal(false);
+    setSelectedBooking(null);
   };
 
   const exportToCSV = (bookings: DoctorBooking[], filename: string) => {
@@ -194,27 +245,19 @@ const DoctorBookingsPage: React.FC = () => {
                   "Doctor",
                   "Date",
                   "Branch",
-                  "Total Amount",
-                  "Discount",
-                  "VAT",
                   "Final Total",
+                  "View Details",
                 ].map((header) => (
                   <th
                     key={header}
                     scope="col"
                     className={
-                      [
-                        "Total Amount",
-                        "Discount",
-                        "VAT",
-                        "Final Total",
-                      ].includes(header)
-                        ? "text-end fw-semibold"
-                        : "fw-semibold"
+                      ["Final Total"].includes(header)
+                        ? "text-end fw-semibold small"
+                        : "fw-semibold small"
                     }
                     style={{
-                      fontSize: "13px",
-                      padding: "12px",
+                      padding: "12px 16px",
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -224,8 +267,8 @@ const DoctorBookingsPage: React.FC = () => {
                 {showActions && (
                   <th
                     scope="col"
-                    className="text-center fw-semibold"
-                    style={{ fontSize: "13px", padding: "12px" }}
+                    className="text-center fw-semibold small"
+                    style={{ padding: "12px 16px" }}
                   >
                     Actions
                   </th>
@@ -236,51 +279,39 @@ const DoctorBookingsPage: React.FC = () => {
             {/* ================= BODY ================= */}
             <tbody>
               {bookings.map((booking) => {
-                const discountAmount =
-                  booking.actual_price && booking.discounted_price
-                    ? (
-                      parseFloat(booking.actual_price) -
-                      parseFloat(booking.discounted_price)
-                    ).toFixed(2)
-                    : "0.00";
-
                 return (
                   <tr 
                     key={booking.id} 
                     className="align-middle border-bottom"
-                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                     style={{ transition: 'transform 0.2s ease-in-out', cursor: 'pointer' }}
                     >
                     {/* Order ID */}
-                    <td className="fw-medium" style={{ padding: "12px" }}>
+                    <td className="fw-medium small" style={{ padding: "12px 16px" }}>
                       {booking.id}
                     </td>
 
                     {/* Customer */}
-                    <td style={{ padding: "12px" }}>
-                      <div style={{ lineHeight: "1.3" }}>
-                        <div className="fw-semibold">
+                    <td style={{ padding: "12px 16px" }}>
+                      <div style={{ lineHeight: "1.4" }}>
+                        <div className="fw-semibold small">
                           {booking.user_full_name}
                         </div>
-                        <div className="small ">
+                        <div className="text-muted" style={{ fontSize: "0.8125rem" }}>
                           {booking.user_email}
-                        </div>
-                        <div className="small ">
-                          {booking.user_phone_number}
                         </div>
                       </div>
                     </td>
 
                     {/* Doctor */}
-                    <td className="fw-medium" style={{ padding: "12px" }}>
+                    <td className="fw-medium small" style={{ padding: "12px 16px" }}>
                       {booking.doctor_name_en}
                     </td>
 
                     {/* Date */}
                     <td
+                      className="small"
                       style={{
-                        padding: "12px",
+                        padding: "12px 16px",
                         whiteSpace: "nowrap",
                       }}
                     >
@@ -288,42 +319,29 @@ const DoctorBookingsPage: React.FC = () => {
                     </td>
 
                     {/* Branch */}
-                    <td style={{ padding: "12px" }}>
+                    <td className="small" style={{ padding: "12px 16px" }}>
                       {booking.branch_name_en}
-                    </td>
-
-                    {/* Total Amount */}
-                    <td
-                      className="text-end fw-medium"
-                      style={{ padding: "12px" }}
-                    >
-                      ﷼{booking.actual_price || "0.00"}
-                    </td>
-
-                    {/* Discount */}
-                    <td
-                      className="text-end "
-                      style={{ padding: "12px" }}
-                    >
-                      ﷼{discountAmount}
-                    </td>
-
-                    {/* VAT */}
-                    <td className="text-end" style={{ padding: "12px" }}>
-                      <div style={{ fontSize: "13px" }}>
-                        {booking.vat_percentage || 15}%
-                      </div>
-                      <div className="small">
-                        (﷼{booking.vat_amount || "0.00"})
-                      </div>
                     </td>
 
                     {/* Final Total */}
                     <td
-                      className="text-end fw-semibold"
-                      style={{ padding: "12px" }}
+                      className="text-end fw-semibold small"
+                      style={{ padding: "12px 16px" }}
                     >
                       ﷼{booking.final_total || "0.00"}
+                    </td>
+
+                    {/* View details */}
+                    <td
+                      className="text-end fw-semibold small"
+                      style={{ padding: "12px 16px" }}
+                    >
+                      <button
+                        onClick={() => handleOpenDetailsModal(booking)}
+                        className="btn btn-outline-primary btn-sm px-3"
+                      >
+                        View Details
+                      </button>
                     </td>
 
                     {/* Actions */}
@@ -332,14 +350,24 @@ const DoctorBookingsPage: React.FC = () => {
                         className="text-center"
                         style={{ padding: "12px" }}
                       >
-                        <button
-                          onClick={() =>
-                            handleOpenCancelModal(booking.id)
-                          }
-                          className="btn btn-outline-danger btn-sm px-3"
-                        >
-                          Cancel
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            onClick={() =>
+                              handleOpenCancelModal(booking.id)
+                            }
+                            className="btn btn-outline-danger btn-sm px-3"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleOpenCompleteModal(booking.id)
+                            }
+                            className="btn btn-success btn-sm px-3"
+                          >
+                            Complete
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -417,84 +445,92 @@ const DoctorBookingsPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full border p-6 radius-8">
-      <h6 className="" >
+    <div className="w-full border rounded p-4">
+      <h5 className="mb-4 fw-semibold">
         Doctor Bookings
-      </h6>
+      </h5>
 
-      <div className="mb-4 border-bottom" style={{ borderColor: "var(--bs-border-color)" }}>
-        <div className="d-flex gap-2 py-3 flex-wrap">
+      <ul className="nav nav-tabs mb-4" role="tablist">
+        <li className="nav-item" role="presentation">
           <button
             onClick={() => setMainTab("completed")}
-            className={`btn btn-sm px-6 rounded-4 py-4 fw-semibold d-flex align-items-center gap-2  ${mainTab === "completed"
-                ? "text-primary border-3 border-primary"
-                : "text-secondary"
-              }`}
-            style={{ background: "transparent", borderRadius: 0 }}
+            className={`nav-link d-flex align-items-center gap-2 ${
+              mainTab === "completed" ? "active" : ""
+            }`}
+            type="button"
+            role="tab"
+            aria-selected={mainTab === "completed"}
           >
-            Completed
-            <span className={`badge rounded-pill ${mainTab === "completed" ? "bg-primary text-white" : "bg-secondary-subtle text-secondary"
-              }`}>
+            <span className="fw-semibold">Completed</span>
+            <span className={`badge rounded-pill ${
+              mainTab === "completed" ? "bg-primary text-white" : "bg-secondary"
+            }`}>
               {completedBookings.length}
             </span>
           </button>
+        </li>
 
+        <li className="nav-item" role="presentation">
           <button
             onClick={() => setMainTab("upcoming")}
-            className={`btn btn-sm px-6 rounded-4 py-4 fw-semibold d-flex align-items-center gap-2  ${mainTab === "upcoming"
-                ? "text-primary  border-3 border-primary"
-                : "text-secondary"
-              }`}
-            style={{ background: "transparent", borderRadius: 0 }}
+            className={`nav-link d-flex align-items-center gap-2 ${
+              mainTab === "upcoming" ? "active" : ""
+            }`}
+            type="button"
+            role="tab"
+            aria-selected={mainTab === "upcoming"}
           >
-            Upcoming
-            <span className={`badge rounded-pill ${mainTab === "upcoming" ? "bg-primary text-white" : "bg-secondary-subtle text-secondary"
-              }`}>
+            <span className="fw-semibold">Upcoming</span>
+            <span className={`badge rounded-pill ${
+              mainTab === "upcoming" ? "bg-primary text-white" : "bg-secondary"
+            }`}>
               {upcomingBookings.length}
             </span>
           </button>
+        </li>
 
+        <li className="nav-item" role="presentation">
           <button
             onClick={() => setMainTab("canceled")}
-            className={`btn btn-sm px-6 rounded-4 py-4 fw-semibold d-flex align-items-center gap-2 ${mainTab === "canceled"
-                ? "text-primary  border-3 border-primary"
-                : "text-secondary"
-              }`}
-            style={{ background: "transparent", borderRadius: 0 }}
+            className={`nav-link d-flex align-items-center gap-2 ${
+              mainTab === "canceled" ? "active" : ""
+            }`}
+            type="button"
+            role="tab"
+            aria-selected={mainTab === "canceled"}
           >
-            Canceled
-            <span className={`badge rounded-pill ${mainTab === "canceled" ? "bg-primary text-white" : "bg-secondary-subtle text-secondary"
-              }`}>
+            <span className="fw-semibold">Canceled</span>
+            <span className={`badge rounded-pill ${
+              mainTab === "canceled" ? "bg-primary text-white" : "bg-secondary"
+            }`}>
               {canceledBookings.length}
             </span>
           </button>
-        </div>
-      </div>
+        </li>
+      </ul>
 
       {/* Search and Filter Section */}
-      <div className="mb-4 p-3">
+      <div className="mb-4 p-3 bg-body-secondary rounded">
         <div className="row g-3">
           {/* Search Input */}
           <div className="col-md-6 col-lg-4">
-            <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Search</label>
+            <label className="form-label fw-semibold small">Search</label>
             <input
               type="text"
               className="form-control"
               placeholder="Search by name, email, phone, or doctor..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ fontSize: '14px' }}
             />
           </div>
 
           {/* Branch Filter */}
           <div className="col-md-6 col-lg-3">
-            <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Branch</label>
+            <label className="form-label fw-semibold small">Branch</label>
             <select
               className="form-select"
               value={selectedBranch}
               onChange={(e) => setSelectedBranch(e.target.value)}
-              style={{ fontSize: '14px' }}
             >
               <option value="all">All Branches</option>
               {branches.map(branch => (
@@ -505,25 +541,23 @@ const DoctorBookingsPage: React.FC = () => {
 
           {/* Date From */}
           <div className="col-md-6 col-lg-2">
-            <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Date From</label>
+            <label className="form-label fw-semibold small">Date From</label>
             <input
               type="date"
               className="form-control"
               value={selectedDateFrom}
               onChange={(e) => setSelectedDateFrom(e.target.value)}
-              style={{ fontSize: '14px' }}
             />
           </div>
 
           {/* Date To */}
           <div className="col-md-6 col-lg-2">
-            <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Date To</label>
+            <label className="form-label fw-semibold small">Date To</label>
             <input
               type="date"
               className="form-control"
               value={selectedDateTo}
               onChange={(e) => setSelectedDateTo(e.target.value)}
-              style={{ fontSize: '14px' }}
             />
           </div>
 
@@ -531,8 +565,7 @@ const DoctorBookingsPage: React.FC = () => {
           <div className="col-md-12 col-lg-1 d-flex align-items-end">
             <button
               onClick={clearFilters}
-              className="btn btn-outline-secondary w-100"
-              style={{ fontSize: '14px' }}
+              className="btn btn-outline-secondary w-100 small"
               title="Clear all filters"
             >
               Clear
@@ -540,34 +573,6 @@ const DoctorBookingsPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* <div className="mb-3">
-        {getCurrentBookings().length > 0 && (
-          <button
-            onClick={() => exportToCSV(getCurrentBookings(), `doctor-bookings-${mainTab}`)}
-            style={{
-              border: 'none',
-              background: '#6b46c1',
-              color: 'white',
-              padding: '8px 16px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Download CSV
-          </button>
-        )}
-      </div> */}
-
       {renderBookingTable(getCurrentBookings(), mainTab === 'upcoming')}
 
       <CancelModal
@@ -576,6 +581,21 @@ const DoctorBookingsPage: React.FC = () => {
         error={cancelError}
         onClose={handleCloseCancelModal}
         onConfirm={handleCancelBooking}
+      />
+      
+      <CompleteModal
+        show={showCompleteModal}
+        isCompleting={isCompleting}
+        error={completeError}
+        onClose={handleCloseCompleteModal}
+        onConfirm={handleCompleteBooking}
+      />
+
+
+      <DoctorDetailsModal
+        show={showDetailsModal}
+        booking={selectedBooking}
+        onClose={handleCloseDetailsModal}
       />
     </div>
   );
